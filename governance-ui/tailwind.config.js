@@ -5,7 +5,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      gridTemplateColumns: {
+        // Custom utility class: auto-fill-grid
+        'auto-fill-grid': 'repeat(auto-fill, minmax(320px, 1fr))',
+      },
+    },
   },
   plugins: [],
 }

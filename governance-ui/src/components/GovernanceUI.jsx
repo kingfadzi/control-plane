@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ReleaseList from './ProductOwnerView/ReleaseList.jsx';
+import ReleaseList from './ProductOwner/ReleaseList.jsx';
 import StageTabs from './StageTabs';
 import StageDetails from './StageDetails';
 

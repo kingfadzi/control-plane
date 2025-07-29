@@ -8,7 +8,7 @@ const GovernanceTasks = () => {
 
     return (
         <div className="border rounded p-4 shadow">
-            <h2 className="text-xl font-semibold mb-2">📋 Outstanding Governance Tasks</h2>
+            <h2 className="text-xl font-semibold mb-2">📋 Outstanding Governance1 Tasks</h2>
             <ul className="space-y-2">
                 {tasks.map(task => (
                     <li key={task.id} className="border p-2 rounded">

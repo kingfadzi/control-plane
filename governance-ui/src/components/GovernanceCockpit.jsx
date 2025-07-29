@@ -1,4 +1,3 @@
-// src/components/GovernanceCockpit.jsx
 import React from 'react';
 import ApplicationOverview from "./GovernanceCockpit/ApplicationOverview.jsx";
 import CurrentGovernanceProgress from './GovernanceCockpit/CurrentGovernanceProgress';
@@ -24,9 +23,12 @@ import ControlQuestionnaireResponses from './GovernanceCockpit/ControlQuestionna
 
 const GovernanceCockpit = () => {
     return (
-        <div className="p-6 space-y-8 font-sans">
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-                <ApplicationOverview/>
+        <div className="p-6 font-sans">
+            <section
+                className="grid gap-6 items-start"
+                style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}
+            >
+                <ApplicationOverview />
                 <CurrentGovernanceProgress />
                 <OutstandingGovernanceTasks />
                 <OpenRisks />
