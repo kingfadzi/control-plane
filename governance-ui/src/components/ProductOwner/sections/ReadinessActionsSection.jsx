@@ -1,20 +1,20 @@
 import React from "react";
 import Section from "../../GovernanceCockpit/shared/Section";
 
-import OutstandingTasksCard from "../cards/OutstandingTasksCard";
-import PendingApprovalsCard from "../cards/PendingApprovalsCard";
-import UpcomingMilestonesCard from "../cards/UpcomingMilestonesCard";
-import BlockingIssuesCard from "../cards/BlockingIssuesCard";
+import ChangeControlActionsCard from "../cards/ChangeControlActionsCard.jsx";
+import EngagementActionsCard from "../cards/EngagementActionsCard.jsx";
+import TaskWorkflowCard from "../cards/TaskWorkflowCard.jsx";
+import ReleasePipelineHealthCard from "../cards/ReleasePipelineHealthCard.jsx";
 
 const ReadinessActionsSection = () => (
     <Section
         title="Readiness Actions"
         insights="What needs to be done before this product can be released?"
     >
-        <OutstandingTasksCard />
-        <PendingApprovalsCard />
-        <UpcomingMilestonesCard />
-        <BlockingIssuesCard />
+        <ChangeControlActionsCard />
+        <EngagementActionsCard />
+        <TaskWorkflowCard />
+        <ReleasePipelineHealthCard />
     </Section>
 );
 

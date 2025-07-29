@@ -1,20 +1,20 @@
 import React from "react";
 import Section from "../../GovernanceCockpit/shared/Section";
 
-import OpenRisksCard from "../cards/OpenRisksCard";
-import ExceptionsCard from "../cards/ExceptionsCard";
-import ViolationSummaryCard from "../cards/ViolationSummaryCard";
-import RiskBreakdownCard from "../cards/RiskBreakdownCard";
+import RiskStoryManagementCard from "../cards/RiskStoryManagementCard.jsx";
+import ExceptionManagementCard from "../cards/ExceptionManagementCard.jsx";
+import BlockersBacklogCard from "../cards/BlockersBacklogCard.jsx";
+import DependencySecurityRiskCard from "../cards/DependencySecurityRiskCard.jsx";
 
 const RisksAndExceptionsSection = () => (
     <Section
         title="Risks & Exceptions"
         insights="What could prevent this product from going live successfully?"
     >
-        <OpenRisksCard />
-        <ExceptionsCard />
-        <ViolationSummaryCard />
-        <RiskBreakdownCard />
+        <RiskStoryManagementCard />
+        <ExceptionManagementCard />
+        <BlockersBacklogCard />
+        <DependencySecurityRiskCard />
     </Section>
 );
 
