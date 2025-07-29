@@ -1,20 +1,21 @@
-import React from 'react';
-import Section from '../../GovernanceCockpit/shared/Section';
+import React from "react";
+import Section from "../../GovernanceCockpit/shared/Section";
 
-import AppOwnershipCard from '../cards/AppOwnershipCard';
-import GovernanceLinksCard from '../cards/GovernanceLinksCard';
-import ProductStatusCard from '../cards/ProductStatusCard';
-import DependenciesCard from '../cards/DependenciesCard';
+import AppOwnershipCard from "../cards/AppOwnershipCard";
+import GovernanceLinksCard from "../cards/GovernanceLinksCard";
+// Replace these two…
+import ProductContactsCard from "../cards/ProductContactsCard";
+import ControlSMEContactsCard from "../cards/ControlSMEContactsCard";
 
 const ProductOverviewSection = () => (
     <Section
         title="Product Overview"
-        insights="What is this product? Who owns it? Where are the key touchpoints?"
+        insights="Who owns this product, and who are the points of contact for delivery vs. controls?"
     >
-      <AppOwnershipCard />
-      <GovernanceLinksCard />
-      <ProductStatusCard />
-      <DependenciesCard />
+        <AppOwnershipCard />
+        <GovernanceLinksCard />
+        <ProductContactsCard />
+        <ControlSMEContactsCard />
     </Section>
 );
 
