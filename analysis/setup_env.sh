@@ -19,6 +19,7 @@ pip install \
   beautifulsoup4 \
   pandas \
   sentence-transformers \
-  scikit-learn
+  scikit-learn \
+  pdfplumber
 
-echo "Done!  Model is in ./all-MiniLM-L12-v2 and venv is ready."
+echo "Done! Model is in ./all-MiniLM-L12-v2 and venv is ready."
