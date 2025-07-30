@@ -1,0 +1,123 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.0.6 Chrome/138.0.7204.100 Electron/37.2.3 Safari/537.36" version="28.0.6">
+  <diagram name="Page-1" id="8fXgRclY4R3ZUHF5prza">
+    <mxGraphModel dx="1481" dy="663" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-2" target="5PTSvoRr3SGUGM-ckzZV-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-2" value="Risks" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="171" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-4" target="5PTSvoRr3SGUGM-ckzZV-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-4" value="Controls" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="171" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-6" target="5PTSvoRr3SGUGM-ckzZV-32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-6" value="Policy Gate" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="280" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-8" target="5PTSvoRr3SGUGM-ckzZV-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-8" value="Actions" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-10" target="5PTSvoRr3SGUGM-ckzZV-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-10" value="Actions" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-12" target="5PTSvoRr3SGUGM-ckzZV-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-12" value="Product Owner" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-14" target="5PTSvoRr3SGUGM-ckzZV-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-14" value="Control SME" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-16" target="5PTSvoRr3SGUGM-ckzZV-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-16" value="Entry Criteria" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="280" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-18" target="5PTSvoRr3SGUGM-ckzZV-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-18" value="Risks" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="171" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-20" target="5PTSvoRr3SGUGM-ckzZV-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-20" value="Controls" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="171" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-22" target="5PTSvoRr3SGUGM-ckzZV-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-22" value="Policy Gate" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="280" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-24" target="5PTSvoRr3SGUGM-ckzZV-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-24" value="Actions" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-26" target="5PTSvoRr3SGUGM-ckzZV-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-26" value="Actions" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-28" target="5PTSvoRr3SGUGM-ckzZV-24">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-28" value="Product Owner" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="860" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-30" target="5PTSvoRr3SGUGM-ckzZV-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-30" value="Control SME" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-32" target="5PTSvoRr3SGUGM-ckzZV-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-32" value="Exit / Entry Criteria" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="280" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="5PTSvoRr3SGUGM-ckzZV-34">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1420" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-34" value="Exit Criteria" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="280" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-35" value="Stage 1 Onboarding" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="320" y="80" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-36" value="Stage 2&lt;br&gt;Mobikizing" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="960" y="80" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="5PTSvoRr3SGUGM-ckzZV-37" value="Next Stage" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" vertex="1" parent="1">
+          <mxGeometry x="1420" y="260" width="80" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
