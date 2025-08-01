@@ -1,4 +1,3 @@
-// src/components/GovernanceCockpit/shared/SectionWide.jsx
 import React, { useState } from 'react';
 import InsightsToggle from './InsightsToggle.jsx';
 
@@ -23,7 +22,8 @@ const SectionWide = ({ title, insights, children }) => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 2 Cards per row on medium+ screens, 1 per row on mobile */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {children}
             </div>
         </section>

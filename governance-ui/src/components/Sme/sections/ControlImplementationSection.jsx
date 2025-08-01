@@ -1,21 +1,16 @@
 import React from "react";
-import Section from "../../GovernanceCockpit/shared/Section";
-
-import AppsMissingMandatoryControlsCard from "../cards/AppsMissingMandatoryControlsCard.jsx";
-import InvalidArtifactsCard from "../cards/InvalidArtifactsCard.jsx";
-import PendingApprovalsCard from "../cards/PendingApprovalsCard.jsx";
-import LowEngagementScoreCard from "../cards/LowEngagementScoreCard.jsx";
+import SectionWide from "../../GovernanceCockpit/shared/SectionWide.jsx";
+import MissingAndUnassignedControlsCard from "../cards/MissingAndUnassignedControlsCard";
+import EngagementAndApprovalGapsCard from "../cards/EngagementAndApprovalGapsCard";
 
 const ControlImplementationSection = () => (
-    <Section
+    <SectionWide
         title="Control Implementation Gaps"
-        insights="Where are your controls incomplete or unreviewed?"
+        insights="Detects controls that are missing, unassigned, or have low SME activity."
     >
-        <AppsMissingMandatoryControlsCard />
-        <InvalidArtifactsCard />
-        <PendingApprovalsCard />
-        <LowEngagementScoreCard />
-    </Section>
+        <MissingAndUnassignedControlsCard className="w-full md:w-[44%]" />
+        <EngagementAndApprovalGapsCard className="w-full md:w-[44%]" />
+    </SectionWide>
 );
 
 export default ControlImplementationSection;

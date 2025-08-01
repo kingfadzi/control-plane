@@ -1,20 +1,15 @@
 import React from "react";
-import Section from "../../GovernanceCockpit/shared/Section";
-
-import UnlinkedRiskStoriesCard from "../cards/UnlinkedRiskStoriesCard.jsx";
-import ExpiredExceptionsCard from "../cards/ExpiredExceptionsCard.jsx";
-import DecliningControlCoverageCard from "../cards/DecliningControlCoverageCard.jsx";
-import PoorEvidenceQualityCard from "../cards/PoorEvidenceQualityCard.jsx";
+import Section from "../../GovernanceCockpit/shared/SectionWide";
+import UnlinkedRiskStoriesCard from "../cards/UnlinkedRiskStoriesCard";
+import HighRiskExceptionsCard from "../cards/HighRiskExceptionsCard";
 
 const RiskAndExposureSection = () => (
     <Section
-        title="Risk Signals & Exposure"
-        insights="What emerging risks or control failures require action?"
+        title="Emerging Risks & Exposure"
+        insights="Tracks emerging risk signals based on exceptions, trends, or risk stories."
     >
         <UnlinkedRiskStoriesCard />
-        <ExpiredExceptionsCard />
-        <DecliningControlCoverageCard />
-        <PoorEvidenceQualityCard />
+        <HighRiskExceptionsCard />
     </Section>
 );
 

@@ -1,21 +1,18 @@
 import React from "react";
 import Section from "../../GovernanceCockpit/shared/Section";
-
-import MissingEvidenceCard from "../cards/MissingEvidenceCard.jsx";
-import PendingExceptionsCard from "../cards/PendingExceptionsCard.jsx";
-import RepeatedExceptionsCard from "../cards/RepeatedExceptionsCard.jsx";
-import BlockedTasksCard from "../cards/BlockedTasksCard.jsx";
+import ExceptionAndEvidenceGapsCard from "../cards/ExceptionAndEvidenceGapsCard";
+import GovernanceBlockersCard from "../cards/GovernanceBlockersCard";
+import SectionWide from "../../GovernanceCockpit/shared/SectionWide.jsx";
 
 const GovernanceBreakdownsSection = () => (
-    <Section
+    <SectionWide
         title="Governance Process Breakdowns"
-        insights="Where are governance gaps occurring in execution?"
+        insights="Highlights blockers, missing evidence, or exception delays."
     >
-        <MissingEvidenceCard />
-        <PendingExceptionsCard />
-        <RepeatedExceptionsCard />
-        <BlockedTasksCard />
-    </Section>
+        <ExceptionAndEvidenceGapsCard  className="w-full md:w-[44%]"/>
+        <GovernanceBlockersCard  className="w-full md:w-[44%]"/>
+
+    </SectionWide>
 );
 
 export default GovernanceBreakdownsSection;

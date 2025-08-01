@@ -1,46 +1,33 @@
 import React from "react";
-import GovernanceCard from "../../GovernanceCockpit/shared/GovernanceCard";
-import { CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon } from "@heroicons/react/24/solid";
-
-const items = [
-    {
-        label: "jumpstart-app",
-        value: "Missing PC-10 (LCT attestation not linked)",
-        status: "At Risk",
-    },
-    {
-        label: "claims-service",
-        value: "Incomplete DC-09 (No SonarQube integration)",
-        status: "At Risk",
-    },
-    {
-        label: "fraud-detection",
-        value: "Healthy – All required controls present",
-        status: "Healthy",
-    },
-    {
-        label: "onboarding-portal",
-        value: "Missing DC-06 (Guild control not assigned)",
-        status: "At Risk",
-    },
-];
-
-const statusColor = {
-    "At Risk": "text-red-600",
-    Healthy: "text-green-600",
-};
+import WideGovernanceCard from "../../GovernanceCockpit/shared/WideGovernanceCard";
+import { ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
 
 const statusIcon = {
-    "At Risk": ExclamationTriangleIcon,
-    Healthy: CheckCircleIcon,
+    High: XCircleIcon,
+    Medium: ExclamationTriangleIcon,
+    Low: CheckCircleIcon,
 };
 
-const AppsMissingMandatoryControlsCard = () => (
-    <GovernanceCard
-        title="Apps Missing Mandatory Controls"
+const statusColor = {
+    High: "text-red-600",
+    Medium: "text-yellow-600",
+    Low: "text-green-600",
+};
+
+const items = [
+    { label: "PC-12", value: "Expired exception – High impact", status: "High" },
+    { label: "DC-03", value: "Exception nearing SLA breach", status: "Medium" },
+    { label: "LCT-09", value: "Exception expired 3 days ago", status: "High" },
+    { label: "DC-05", value: "Exception review overdue", status: "Medium" },
+    { label: "PC-08", value: "High-risk exception escalated", status: "High" },
+];
+
+const HighRiskExceptionsCard = () => (
+    <WideGovernanceCard
+        title="High-Risk or Expired Exceptions"
         items={items}
-        maxVisible={3}
-        modalTitle="All Apps Missing Mandatory Controls"
+        maxVisible={4}
+        modalTitle="High-Risk or Expired Exceptions"
         renderItem={(item) => {
             const Icon = statusIcon[item.status] || CheckCircleIcon;
             const color = statusColor[item.status] || "text-gray-500";
@@ -67,4 +54,4 @@ const AppsMissingMandatoryControlsCard = () => (
     />
 );
 
-export default AppsMissingMandatoryControlsCard;
+export default HighRiskExceptionsCard;
