@@ -1,5 +1,5 @@
 import React from "react";
-import ProductOverviewSection from "./ProductOwner/sections/ProductOverviewSection";
+import ProductOverviewSection from "./ProductOwner/sections/ProductOverviewSection.jsx";
 import GovernanceReadinessSection from "./ProductOwner/sections/GovernanceReadinessSection";
 import RisksAndExceptionsSection from "./ProductOwner/sections/RisksAndExceptionsSection";
 import ReadinessActionsSection from "./ProductOwner/sections/ReadinessActionsSection";
