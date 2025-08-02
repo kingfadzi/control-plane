@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import ProductOwnerView from './components/ProductOwnerView';
 import SmeView from './components/SmeView';
-import AuditorView from './components/AuditorView';
+import InternalAuditorView from './components/InternalAuditorView';
 import GovernanceUI from './components/GovernanceUI';
 import GovernanceCockpit from './components/GovernanceCockpit';
 
@@ -44,7 +44,7 @@ const App: React.FC = () => {
             ) : view === 'sme' ? (
                 <SmeView onSelect={handleSelectRelease} />
             ) : view === 'audit' ? (
-                <AuditorView onSelect={handleSelectRelease} />
+                <InternalAuditorView onSelect={handleSelectRelease} />
             ) : (
                 <GovernanceCockpit />
             )}
