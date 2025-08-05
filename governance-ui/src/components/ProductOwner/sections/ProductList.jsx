@@ -29,8 +29,9 @@ const steps = [
     "GitLab Repos",
     "Service Instances",
     "Artifacts",
-    "Policies",
-    "Create DU",
+    "Primary Contacts",
+    "Review",
+    "Create Delivery Unit",
 ];
 
 const ProductList = ({ onSelect }) => {
@@ -38,8 +39,15 @@ const ProductList = ({ onSelect }) => {
     const [step, setStep] = useState(0);
     const [formData, setFormData] = useState({
         appId: "",
-        // Future fields like jiraProject, repos, etc.
+        jiraProject: "",
+        repos: [],
+        instances: [],
+        roadmap: "",
+        architectureVision: "",
+        serviceVision: "",
+        contacts: [],
     });
+    const [newContact, setNewContact] = useState({ type: "", name: "" });
 
     const handleNext = () => setStep((s) => Math.min(s + 1, steps.length - 1));
     const handleBack = () => setStep((s) => Math.max(s - 1, 0));
@@ -47,9 +55,26 @@ const ProductList = ({ onSelect }) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
+    const handleAddContact = () => {
+        if (!newContact.type || !newContact.name) return;
+        setFormData((prev) => ({
+            ...prev,
+            contacts: [...prev.contacts, newContact],
+        }));
+        setNewContact({ type: "", name: "" });
+    };
+
+    const handleRemoveContact = (index) => {
+        setFormData((prev) => ({
+            ...prev,
+            contacts: prev.contacts.filter((_, i) => i !== index),
+        }));
+    };
+
     if (showOnboarding) {
         return (
             <div className="max-w-xl mx-auto space-y-6 p-6 bg-white shadow rounded-xl border border-slate-200">
+                {/* Progress Header */}
                 <div>
                     <h2 className="text-xl font-semibold text-slate-800">
                         Step {step + 1} of {steps.length}: {steps[step]}
@@ -62,6 +87,7 @@ const ProductList = ({ onSelect }) => {
                     </div>
                 </div>
 
+                {/* Step Content */}
                 {step === 0 && (
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-slate-700">App ID</label>
@@ -80,7 +106,7 @@ const ProductList = ({ onSelect }) => {
                         <label className="text-sm font-medium text-slate-700">Jira Project</label>
                         <input
                             type="text"
-                            value={formData.jiraProject || ""}
+                            value={formData.jiraProject}
                             onChange={(e) => updateField("jiraProject", e.target.value)}
                             placeholder="e.g. DEVTOOLS"
                             className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
@@ -97,20 +123,14 @@ const ProductList = ({ onSelect }) => {
                             Select GitLab Repositories
                         </label>
                         <div className="space-y-2">
-                            {[
-                                "devtools-fe",
-                                "devtools-api",
-                                "devtools-utils",
-                                "devtools-auth",
-                                "infra-scripts",
-                            ].map((repo) => {
-                                const isChecked = formData.repos?.includes(repo) ?? false;
+                            {["devtools-fe", "devtools-api", "devtools-utils", "devtools-auth", "infra-scripts"].map((repo) => {
+                                const isChecked = formData.repos.includes(repo);
                                 return (
                                     <label key={repo} className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
-                                            onChange={(e) => {
+                                            onChange={() => {
                                                 const updatedRepos = isChecked
                                                     ? formData.repos.filter((r) => r !== repo)
                                                     : [...formData.repos, repo];
@@ -134,20 +154,14 @@ const ProductList = ({ onSelect }) => {
                             Select Target Service Instances
                         </label>
                         <div className="space-y-2">
-                            {[
-                                "UAT-SI-001",
-                                "DR-SI-002",
-                                "PROD-SI-003",
-                                "PROD-SI-004",
-                                "PERF-SI-005",
-                            ].map((instance) => {
-                                const isChecked = formData.instances?.includes(instance) ?? false;
+                            {["UAT-SI-001", "DR-SI-002", "PROD-SI-003", "PROD-SI-004", "PERF-SI-005"].map((instance) => {
+                                const isChecked = formData.instances.includes(instance);
                                 return (
                                     <label key={instance} className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
-                                            onChange={(e) => {
+                                            onChange={() => {
                                                 const updatedInstances = isChecked
                                                     ? formData.instances.filter((i) => i !== instance)
                                                     : [...formData.instances, instance];
@@ -170,7 +184,6 @@ const ProductList = ({ onSelect }) => {
                         <label className="text-sm font-semibold text-slate-700">
                             Link Governance Artifacts
                         </label>
-
                         <input
                             type="text"
                             value={formData.roadmap}
@@ -178,7 +191,6 @@ const ProductList = ({ onSelect }) => {
                             placeholder="Roadmap URL"
                             className="w-full p-2 border border-slate-300 rounded"
                         />
-
                         <input
                             type="text"
                             value={formData.architectureVision}
@@ -186,7 +198,6 @@ const ProductList = ({ onSelect }) => {
                             placeholder="Architecture Vision URL"
                             className="w-full p-2 border border-slate-300 rounded"
                         />
-
                         <input
                             type="text"
                             value={formData.serviceVision}
@@ -194,36 +205,116 @@ const ProductList = ({ onSelect }) => {
                             placeholder="Service Vision URL"
                             className="w-full p-2 border border-slate-300 rounded"
                         />
-
-                        <p className="text-xs text-slate-500">
-                            These links point to Confluence, GitLab, or another system of record. You can update them later.
-                        </p>
                     </div>
                 )}
 
                 {step === 5 && (
                     <div className="space-y-4">
                         <label className="text-sm font-semibold text-slate-700">
-                            Select Policy Profile
+                            Add Primary Contacts
                         </label>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <select
+                                value={newContact.type}
+                                onChange={(e) => setNewContact({ ...newContact, type: e.target.value })}
+                                className="p-2 border border-slate-300 rounded w-full sm:w-1/2"
+                            >
+                                <option value="">Select Contact Type</option>
+                                <option>Product Owner</option>
+                                <option>Architecture Owner</option>
+                                <option>Agile Team Lead</option>
+                                <option>Service Owner</option>
+                                <option>Accessibility SME</option>
+                                <option>Data Architecture SME</option>
+                                <option>Enterprise Architecture SME</option>
+                                <option>Security SME</option>
+                                <option>Service Transition SME</option>
+                            </select>
+                            <input
+                                type="text"
+                                value={newContact.name}
+                                onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                                placeholder="Contact Name or Email"
+                                className="p-2 border border-slate-300 rounded w-full sm:w-1/2"
+                            />
+                            <button
+                                onClick={handleAddContact}
+                                className="px-4 py-2 bg-blue-600 text-white rounded"
+                                disabled={!newContact.type || !newContact.name}
+                            >
+                                Add
+                            </button>
+                        </div>
+                        {formData.contacts.length > 0 && (
+                            <ul className="divide-y border border-slate-200 rounded">
+                                {formData.contacts.map((c, idx) => (
+                                    <li key={idx} className="flex justify-between items-center px-4 py-2">
+                    <span className="text-sm text-slate-800">
+                      <strong>{c.type}:</strong> {c.name}
+                    </span>
+                                        <button
+                                            onClick={() => handleRemoveContact(idx)}
+                                            className="text-red-500 text-sm"
+                                        >
+                                            Remove
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )}
 
-                        <select
-                            value={formData.policyProfile}
-                            onChange={(e) => updateField("policyProfile", e.target.value)}
-                            className="w-full p-2 border border-slate-300 rounded"
-                        >
-                            <option value="default">Default Policy</option>
-                            <option value="strict">Strict Compliance Policy</option>
-                            <option value="custom">Custom Policy (Advanced)</option>
-                        </select>
+                {step === 6 && (
+                    <div className="space-y-4 text-sm text-slate-700">
+                        <h3 className="text-base font-semibold">Review Delivery Unit Details</h3>
 
-                        <p className="text-xs text-slate-500">
-                            Policy profiles define which attestations, approvals, and evidence are required before deployment.
+                        <div><strong>App ID:</strong> {formData.appId}</div>
+                        <div><strong>Jira Project:</strong> {formData.jiraProject}</div>
+
+                        <div>
+                            <strong>Repositories:</strong>
+                            <ul className="list-disc ml-6">
+                                {formData.repos.map((repo) => (
+                                    <li key={repo}>{repo}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div>
+                            <strong>Service Instances:</strong>
+                            <ul className="list-disc ml-6">
+                                {formData.instances.map((si) => (
+                                    <li key={si}>{si}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div>
+                            <strong>Artifacts:</strong>
+                            <ul className="list-disc ml-6">
+                                <li><strong>Roadmap:</strong> {formData.roadmap}</li>
+                                <li><strong>Architecture Vision:</strong> {formData.architectureVision}</li>
+                                <li><strong>Service Vision:</strong> {formData.serviceVision}</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <strong>Primary Contacts:</strong>
+                            <ul className="list-disc ml-6">
+                                {formData.contacts.map((c, i) => (
+                                    <li key={i}>{c.type}: {c.name}</li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <p className="text-xs text-slate-500 pt-2">
+                            Confirm all information is accurate. You can go back to make edits.
                         </p>
                     </div>
                 )}
 
-
+                {/* Navigation Buttons */}
                 <div className="flex justify-between pt-4">
                     <button
                         onClick={() => setShowOnboarding(false)}
@@ -262,7 +353,7 @@ const ProductList = ({ onSelect }) => {
 
             <div
                 className="grid gap-6"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", display: "grid" }}
+                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
             >
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} onSelect={onSelect} />
