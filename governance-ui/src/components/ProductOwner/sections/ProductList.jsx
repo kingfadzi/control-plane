@@ -27,11 +27,10 @@ const steps = [
     "App ID",
     "Jira Project",
     "GitLab Repos",
-    "Service Instances",
+    "Target Environments",
     "Artifacts",
     "Primary Contacts",
-    "Review",
-    "Create Delivery Unit",
+    "Review"
 ];
 
 const ProductList = ({ onSelect }) => {
@@ -151,7 +150,7 @@ const ProductList = ({ onSelect }) => {
                 {step === 3 && (
                     <div className="space-y-4">
                         <label className="text-sm font-semibold text-slate-700">
-                            Select Target Service Instances
+                            Select Target Environments
                         </label>
                         <div className="space-y-2">
                             {["UAT-SI-001", "DR-SI-002", "PROD-SI-003", "PROD-SI-004", "PERF-SI-005"].map((instance) => {
@@ -174,7 +173,7 @@ const ProductList = ({ onSelect }) => {
                             })}
                         </div>
                         <p className="text-xs text-slate-500">
-                            A Change Request (CR) will be created for each selected instance during release.
+                            A Change Request (CR) will be created for each selected environment during release.
                         </p>
                     </div>
                 )}
@@ -249,9 +248,9 @@ const ProductList = ({ onSelect }) => {
                             <ul className="divide-y border border-slate-200 rounded">
                                 {formData.contacts.map((c, idx) => (
                                     <li key={idx} className="flex justify-between items-center px-4 py-2">
-                    <span className="text-sm text-slate-800">
-                      <strong>{c.type}:</strong> {c.name}
-                    </span>
+                                        <span className="text-sm text-slate-800">
+                                            <strong>{c.type}:</strong> {c.name}
+                                        </span>
                                         <button
                                             onClick={() => handleRemoveContact(idx)}
                                             className="text-red-500 text-sm"
@@ -268,10 +267,8 @@ const ProductList = ({ onSelect }) => {
                 {step === 6 && (
                     <div className="space-y-4 text-sm text-slate-700">
                         <h3 className="text-base font-semibold">Review Delivery Unit Details</h3>
-
                         <div><strong>App ID:</strong> {formData.appId}</div>
                         <div><strong>Jira Project:</strong> {formData.jiraProject}</div>
-
                         <div>
                             <strong>Repositories:</strong>
                             <ul className="list-disc ml-6">
@@ -280,16 +277,14 @@ const ProductList = ({ onSelect }) => {
                                 ))}
                             </ul>
                         </div>
-
                         <div>
-                            <strong>Service Instances:</strong>
+                            <strong>Target Environments:</strong>
                             <ul className="list-disc ml-6">
-                                {formData.instances.map((si) => (
-                                    <li key={si}>{si}</li>
+                                {formData.instances.map((env) => (
+                                    <li key={env}>{env}</li>
                                 ))}
                             </ul>
                         </div>
-
                         <div>
                             <strong>Artifacts:</strong>
                             <ul className="list-disc ml-6">
@@ -298,7 +293,6 @@ const ProductList = ({ onSelect }) => {
                                 <li><strong>Service Vision:</strong> {formData.serviceVision}</li>
                             </ul>
                         </div>
-
                         <div>
                             <strong>Primary Contacts:</strong>
                             <ul className="list-disc ml-6">
@@ -307,7 +301,6 @@ const ProductList = ({ onSelect }) => {
                                 ))}
                             </ul>
                         </div>
-
                         <p className="text-xs text-slate-500 pt-2">
                             Confirm all information is accurate. You can go back to make edits.
                         </p>
@@ -330,12 +323,21 @@ const ProductList = ({ onSelect }) => {
                         >
                             Back
                         </button>
-                        <button
-                            onClick={handleNext}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                        >
-                            {step === steps.length - 1 ? "Finish" : "Next"}
-                        </button>
+                        {step < steps.length - 1 ? (
+                            <button
+                                onClick={handleNext}
+                                className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                            >
+                                Next
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => { /* no-op for now */ }}
+                                className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                            >
+                                Create
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -350,7 +352,6 @@ const ProductList = ({ onSelect }) => {
                     You are responsible for {products.length} products.
                 </p>
             </div>
-
             <div
                 className="grid gap-6"
                 style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
