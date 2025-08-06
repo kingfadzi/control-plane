@@ -25,9 +25,9 @@ const fetchRepos = async (appId) => {
     }
 };
 
-const Step2_RepoSelection = ({ formData, updateField }) => {
+const Step2_RepoSelection = ({ formData, updateField, setSelectedRepos }) => {
     const [availableRepos, setAvailableRepos] = useState({});
-    const [source, setSource] = useState(""); // gitlab, github, etc.
+    const [source, setSource] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -55,6 +55,7 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
         );
         if (isMismatched) {
             updateField("repos", []);
+            setSelectedRepos([]); // Clear selected repos if source changed
         }
     }, [source]);
 
@@ -63,7 +64,16 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
         const updated = current.includes(repoId)
             ? current.filter((r) => r !== repoId)
             : [...current, repoId];
+
         updateField("repos", updated);
+
+        // Update selectedRepos with friendly names
+        if (availableRepos[source]) {
+            const selected = availableRepos[source].filter((r) =>
+                updated.includes(r.id)
+            );
+            setSelectedRepos(selected);
+        }
     };
 
     const sources = Object.keys(availableRepos);

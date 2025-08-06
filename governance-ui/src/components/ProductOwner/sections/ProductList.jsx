@@ -149,7 +149,8 @@ const ProductList = ({ onSelect }) => {
                     <Step7_Review
                         formData={formData}
                         appMetadata={appMetadata}
-                        instanceMetadata={instanceMetadata} // ✅ reused in Step 7
+                        instanceMetadata={instanceMetadata}
+                        selectedJiraProject={selectedJiraProject}
                     />
                 )}
 

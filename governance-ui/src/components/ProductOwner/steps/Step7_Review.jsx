@@ -2,10 +2,23 @@ import React from "react";
 
 const labelClass = "inline-block w-44 text-slate-600";
 
-const Step7_Review = ({ formData, appMetadata, instanceMetadata }) => {
+const Step7_Review = ({
+                          formData,
+                          appMetadata,
+                          instanceMetadata = [],
+                          selectedJiraProject = null,
+                          selectedRepos = [],
+                      }) => {
     const getLabelForInstance = (id) => {
-        const match = instanceMetadata.find((inst) => inst.id === id || inst.instanceCorrelationId === id);
+        const match = instanceMetadata.find(
+            (inst) => inst.id === id || inst.instanceCorrelationId === id
+        );
         return match ? `${match.name} (${match.environment})` : id;
+    };
+
+    const getLabelForRepo = (id) => {
+        const match = selectedRepos.find((r) => r.id === id);
+        return match ? match.name : id;
     };
 
     return (
@@ -14,11 +27,16 @@ const Step7_Review = ({ formData, appMetadata, instanceMetadata }) => {
                 Review Onboarding Summary
             </h2>
 
+            {/* Delivery Unit */}
             <div>
                 <h3 className="text-base text-slate-700 mb-2 font-medium">Delivery Unit</h3>
-                <p><span className={labelClass}>Name:</span>{formData.deliveryUnitName || "—"}</p>
+                <p>
+                    <span className={labelClass}>Name:</span>
+                    {formData.deliveryUnitName || "—"}
+                </p>
             </div>
 
+            {/* Application Details */}
             <div>
                 <h3 className="text-base text-slate-700 mb-2 font-medium">Application Details</h3>
                 <p><span className={labelClass}>App ID:</span>{formData.appId || "—"}</p>
@@ -31,23 +49,36 @@ const Step7_Review = ({ formData, appMetadata, instanceMetadata }) => {
                 <p><span className={labelClass}>Status:</span>{appMetadata?.operationalStatus || "—"}</p>
             </div>
 
-
+            {/* Jira Project */}
             <div>
                 <h3 className="text-base text-slate-700 mb-1 font-medium">Jira Project</h3>
-                <p>{formData.jiraProject || "—"}</p>
+                {selectedJiraProject ? (
+                    <p>
+                        <span className="font-medium text-slate-800">
+                            {selectedJiraProject.name}
+                        </span>{" "}
+                        <span className="text-slate-500">({selectedJiraProject.key})</span>
+                    </p>
+                ) : (
+                    <p>{formData.jiraProject || "—"}</p>
+                )}
             </div>
 
+            {/* Repositories */}
             <div>
                 <h3 className="text-base text-slate-700 mb-1 font-medium">Selected Repositories</h3>
                 <ul className="list-disc ml-5">
                     {formData.repos.length > 0 ? (
-                        formData.repos.map((r) => <li key={r}>{r}</li>)
+                        formData.repos.map((r) => (
+                            <li key={r}>{getLabelForRepo(r)}</li>
+                        ))
                     ) : (
                         <li>None selected</li>
                     )}
                 </ul>
             </div>
 
+            {/* Target Environments */}
             <div>
                 <h3 className="text-base text-slate-700 mb-1 font-medium">Target Environments</h3>
                 <ul className="list-disc ml-5">
@@ -61,6 +92,7 @@ const Step7_Review = ({ formData, appMetadata, instanceMetadata }) => {
                 </ul>
             </div>
 
+            {/* Governance Artifacts */}
             <div>
                 <h3 className="text-base text-slate-700 mb-1 font-medium">Governance Artifacts</h3>
                 <p><span className={labelClass}>Roadmap:</span>{formData.roadmap || "—"}</p>
@@ -68,6 +100,7 @@ const Step7_Review = ({ formData, appMetadata, instanceMetadata }) => {
                 <p><span className={labelClass}>Service Vision:</span>{formData.serviceVision || "—"}</p>
             </div>
 
+            {/* Contacts */}
             <div>
                 <h3 className="text-base text-slate-700 mb-1 font-medium">Assigned Contacts</h3>
                 <ul className="list-disc ml-5">
