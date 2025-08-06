@@ -60,6 +60,7 @@ const ProductList = ({ onSelect }) => {
 
     const [appMetadata, setAppMetadata] = useState(null);
     const [selectedJiraProject, setSelectedJiraProject] = useState(null);
+    const [instanceMetadata, setInstanceMetadata] = useState([]); // ✅ metadata fetched once in Step 3
 
     const updateField = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -123,6 +124,7 @@ const ProductList = ({ onSelect }) => {
                     <Step3_TargetEnvironments
                         formData={formData}
                         updateField={updateField}
+                        setInstanceMetadata={setInstanceMetadata} // ✅ set from Step 3
                     />
                 )}
                 {step === 4 && (
@@ -147,6 +149,7 @@ const ProductList = ({ onSelect }) => {
                     <Step7_Review
                         formData={formData}
                         appMetadata={appMetadata}
+                        instanceMetadata={instanceMetadata} // ✅ reused in Step 7
                     />
                 )}
 

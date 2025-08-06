@@ -1,32 +1,26 @@
 import React, { useEffect, useState } from "react";
 
 const fetchServiceInstances = async (appId) => {
-    try {
-        const res = await fetch(`/applications/${appId}/environments`, {
-            headers: { Accept: "application/json" },
-        });
-        if (!res.ok) throw new Error("Failed to fetch instances");
+    const res = await fetch(`/applications/${appId}/environments`, {
+        headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error("Failed to fetch instances");
 
-        const data = await res.json();
+    const data = await res.json();
 
-        return data.map((inst) => ({
-            id: inst.instanceCorrelationId,
-            name: inst.instanceName,
-            environment: inst.environment.toLowerCase(), // normalize
-        }));
-    } catch (err) {
-        console.error("Error fetching service instances:", err);
-        throw err;
-    }
+    return data.map((inst) => ({
+        id: inst.instanceCorrelationId,
+        name: inst.instanceName,
+        environment: inst.environment.toLowerCase(), // normalize
+    }));
 };
 
-const Step3_TargetEnvironments = ({ formData, updateField }) => {
+const Step3_TargetEnvironments = ({ formData, updateField, setInstanceMetadata }) => {
     const [instances, setInstances] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [envError, setEnvError] = useState("");
 
-    // Determine current selected environment (if any)
     const currentEnv = (() => {
         const firstId = formData.instances?.[0];
         const match = instances.find((i) => i.id === firstId);
@@ -62,6 +56,7 @@ const Step3_TargetEnvironments = ({ formData, updateField }) => {
             try {
                 const result = await fetchServiceInstances(formData.appId);
                 setInstances(result);
+                setInstanceMetadata(result); // ← store for Step 7
                 if (result.length === 0) {
                     setError("No service instances found for this App ID.");
                 }
@@ -76,7 +71,6 @@ const Step3_TargetEnvironments = ({ formData, updateField }) => {
         }
     }, [formData.appId]);
 
-    // Group instances by environment type
     const groupedByEnv = instances.reduce((acc, inst) => {
         if (!acc[inst.environment]) acc[inst.environment] = [];
         acc[inst.environment].push(inst);
