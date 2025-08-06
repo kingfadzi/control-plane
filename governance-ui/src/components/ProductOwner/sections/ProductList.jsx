@@ -7,7 +7,8 @@ import Step2_RepoSelection from "../steps/Step2_RepoSelection";
 import Step3_TargetEnvironments from "../steps/Step3_TargetEnvironments";
 import Step4_Artifacts from "../steps/Step4_Artifacts";
 import Step5_PrimaryContacts from "../steps/Step5_PrimaryContacts";
-import Step6_Review from "../steps/Step6_Review";
+import Step6_DeliveryUnitName from "../steps/Step6_DeliveryUnitName";
+import Step7_Review from "../steps/Step7_Review";
 
 const products = [
     {
@@ -37,12 +38,14 @@ const steps = [
     "Target Environments",
     "Artifacts",
     "Primary Contacts",
+    "Delivery Unit Name",
     "Review",
 ];
 
 const ProductList = ({ onSelect }) => {
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [step, setStep] = useState(0);
+
     const [formData, setFormData] = useState({
         appId: "",
         jiraProject: "",
@@ -52,6 +55,7 @@ const ProductList = ({ onSelect }) => {
         architectureVision: "",
         serviceVision: "",
         contacts: [],
+        deliveryUnitName: "",
     });
 
     const [appMetadata, setAppMetadata] = useState(null);
@@ -69,9 +73,12 @@ const ProductList = ({ onSelect }) => {
         (step === 1 && !selectedJiraProject) ||
         (step === 2 && formData.repos.length === 0) ||
         (step === 3 && formData.instances.length === 0) ||
-        (step === 4 && (!formData.roadmap || !formData.architectureVision || !formData.serviceVision)) ||
-        (step === 5 && formData.contacts.length === 0);
-
+        (step === 4 &&
+            (!formData.roadmap ||
+                !formData.architectureVision ||
+                !formData.serviceVision)) ||
+        (step === 5 && formData.contacts.length === 0) ||
+        (step === 6 && !formData.deliveryUnitName);
 
     if (showOnboarding) {
         return (
@@ -119,13 +126,28 @@ const ProductList = ({ onSelect }) => {
                     />
                 )}
                 {step === 4 && (
-                    <Step4_Artifacts formData={formData} updateField={updateField} />
+                    <Step4_Artifacts
+                        formData={formData}
+                        updateField={updateField}
+                    />
                 )}
                 {step === 5 && (
-                    <Step5_PrimaryContacts formData={formData} updateField={updateField} />
+                    <Step5_PrimaryContacts
+                        formData={formData}
+                        updateField={updateField}
+                    />
                 )}
                 {step === 6 && (
-                    <Step6_Review formData={formData} appMetadata={appMetadata} />
+                    <Step6_DeliveryUnitName
+                        formData={formData}
+                        updateField={updateField}
+                    />
+                )}
+                {step === 7 && (
+                    <Step7_Review
+                        formData={formData}
+                        appMetadata={appMetadata}
+                    />
                 )}
 
                 {/* Navigation */}
@@ -151,7 +173,6 @@ const ProductList = ({ onSelect }) => {
                         >
                             {step === steps.length - 1 ? "Create" : "Next"}
                         </button>
-
                     </div>
                 </div>
             </div>

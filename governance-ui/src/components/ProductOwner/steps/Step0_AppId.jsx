@@ -1,27 +1,31 @@
 import React, { useState } from "react";
 
 const fetchAppMetadata = async (appId) => {
-    const db = {
-        APP123042: {
-            parentName: "Digital Banking (APP100001)",
-            businessAppName: "Jumpstart App",
-            appId: "APP123042",
-            transactionCycle: "CTO",
-            applicationOwner: "Jane Doe",
-            systemArchitect: "John Smith",
-            operationalStatus: "Production",
-            applicationType: "Homegrown",
-            architectureType: "API",
-            installType: "Containerized",
-            applicationComponents: [
-                { name: "Auth Service", appId: "APP321001" },
-                { name: "Core Engine", appId: "APP321002" },
-            ],
-        },
-    };
-    return new Promise((resolve) =>
-        setTimeout(() => resolve(db[appId] || null), 500)
-    );
+    try {
+        const res = await fetch(`/applications/${appId}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+
+        return {
+            parentName: data.parentName,
+            businessAppName: data.businessAppName,
+            appId: data.appId,
+            transactionCycle: data.transactionCycle,
+            applicationOwner: data.applicationOwner,
+            systemArchitect: data.systemArchitect,
+            operationalStatus: data.operationalStatus,
+            applicationType: data.applicationType,
+            architectureType: data.architectureType,
+            installType: data.installType,
+            applicationComponents: data.applicationComponents.map((c) => ({
+                name: c.name,
+                appId: c.appId,
+            })),
+        };
+    } catch (err) {
+        console.error("App metadata lookup failed:", err);
+        return null;
+    }
 };
 
 const Step0_AppId = ({ formData, updateField, appMetadata, setAppMetadata }) => {

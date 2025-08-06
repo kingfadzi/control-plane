@@ -1,21 +1,27 @@
 import React, { useState } from "react";
 
-const fetchJiraProjects = async (query) => {
-    const projects = [
-        { key: "DEVTOOLS", name: "Developer Tooling" },
-        { key: "JUMPSTART", name: "Jumpstart App" },
-        { key: "RISKMGMT", name: "Risk Management Platform" },
-    ];
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const results = projects.filter(
-                (p) =>
-                    p.key.toLowerCase().includes(query.toLowerCase()) ||
-                    p.name.toLowerCase().includes(query.toLowerCase())
-            );
-            resolve(results);
-        }, 400);
-    });
+const fetchJiraProjects = async (appId) => {
+    try {
+        const response = await fetch(`/tools/jira/by-app/${appId}`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch Jira projects");
+        }
+
+        const data = await response.json();
+        return data.map((item) => ({
+            key: item.toolElementId,
+            name: item.name,
+        }));
+    } catch (error) {
+        console.error("Error fetching Jira projects:", error);
+        return [];
+    }
 };
 
 const Step1_Jira = ({
@@ -30,10 +36,16 @@ const Step1_Jira = ({
 
     const handleSearch = async () => {
         setLoading(true);
-        const results = await fetchJiraProjects(formData.jiraProject);
-        setJiraProjects(results);
-        setLoading(false);
-        setError(results.length === 0 ? "No matching Jira projects." : "");
+        setError("");
+        try {
+            const results = await fetchJiraProjects(formData.appId);
+            setJiraProjects(results);
+            setError(results.length === 0 ? "No matching Jira projects." : "");
+        } catch (err) {
+            setError("Failed to fetch Jira projects.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -52,7 +64,7 @@ const Step1_Jira = ({
             />
             <button
                 onClick={handleSearch}
-                disabled={!formData.jiraProject || loading}
+                disabled={!formData.appId || loading}
                 className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
             >
                 {loading ? "Searching..." : "Search"}

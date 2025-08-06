@@ -1,44 +1,61 @@
 import React, { useState, useEffect } from "react";
 
-// Mocked source-specific repo lists
-const REPO_SOURCES = {
-    gitlab: [
-        "devtools-fe",
-        "devtools-api",
-        "infra-scripts",
-        "auth-service",
-        "ci-templates",
-    ],
-    bitbucket: [
-        "bb-frontend",
-        "bb-backend",
-        "bb-utils",
-        "bb-data-pipeline",
-    ],
+const fetchRepos = async (appId) => {
+    try {
+        const res = await fetch(`/tools/repos/by-app/${appId}`);
+        if (!res.ok) throw new Error("Failed to fetch repositories.");
+        const data = await res.json();
+
+        const grouped = data.reduce((acc, curr) => {
+            const type = curr.toolType?.toLowerCase();
+            const id = curr.identifier;
+
+            if (!type || !id) return acc;
+
+            if (!acc[type]) acc[type] = [];
+            acc[type].push(id);
+            return acc;
+        }, {});
+
+        return grouped;
+    } catch (err) {
+        console.error("Repo fetch failed:", err);
+        return {};
+    }
 };
 
 const Step2_RepoSelection = ({ formData, updateField }) => {
-    const [source, setSource] = useState(""); // gitlab or bitbucket
-    const [availableRepos, setAvailableRepos] = useState([]);
+    const [availableRepos, setAvailableRepos] = useState({});
+    const [source, setSource] = useState(""); // gitlab, bitbucket, github, etc.
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        if (!source) {
-            setAvailableRepos([]);
-            return;
-        }
+        if (!formData.appId) return;
 
-        // Only reset repos if previously selected repos belong to a different source
+        const load = async () => {
+            const repos = await fetchRepos(formData.appId);
+            setAvailableRepos(repos);
+
+            const matchingSource = Object.keys(repos).find(src =>
+                formData.repos.every(r => repos[src].includes(r))
+            );
+
+            setSource(matchingSource || "");
+        };
+
+        load();
+    }, [formData.appId]);
+
+    useEffect(() => {
+        if (!source || !availableRepos[source]) return;
+
         const isMismatched = formData.repos.some(
-            (r) => !REPO_SOURCES[source].includes(r)
+            (r) => !availableRepos[source].includes(r)
         );
-
         if (isMismatched) {
             updateField("repos", []);
         }
-
-        setAvailableRepos(REPO_SOURCES[source]);
     }, [source]);
-
 
     const handleToggleRepo = (repo) => {
         const current = formData.repos;
@@ -48,6 +65,8 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
         updateField("repos", updated);
     };
 
+    const sources = Object.keys(availableRepos);
+
     return (
         <div className="space-y-6">
             <div>
@@ -55,7 +74,7 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
                     Select Source System
                 </label>
                 <div className="flex space-x-4 mt-2">
-                    {["gitlab", "bitbucket"].map((src) => (
+                    {sources.map((src) => (
                         <button
                             key={src}
                             className={`px-4 py-2 rounded text-sm border ${
@@ -65,20 +84,20 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
                             }`}
                             onClick={() => setSource(src)}
                         >
-                            {src === "gitlab" ? "GitLab" : "Bitbucket"}
+                            {src.charAt(0).toUpperCase() + src.slice(1)}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {source && (
+            {source && availableRepos[source] && (
                 <>
                     <div>
                         <label className="text-sm font-semibold text-slate-700">
                             Select Repositories from {source.charAt(0).toUpperCase() + source.slice(1)}
                         </label>
                         <div className="space-y-2 mt-2">
-                            {availableRepos.map((repo) => (
+                            {availableRepos[source].map((repo) => (
                                 <label key={repo} className="flex items-center space-x-2">
                                     <input
                                         type="checkbox"
@@ -97,6 +116,8 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
                     </p>
                 </>
             )}
+
+            {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
     );
 };

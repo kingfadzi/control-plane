@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from "react";
 
-// Simulated fetch from service registry
 const fetchServiceInstances = async (appId) => {
-    const allInstances = {
-        APP123042: [
-            { id: "svc-dev", name: "DEV - Jumpstart API" },
-            { id: "svc-uat", name: "UAT - Jumpstart API" },
-            { id: "svc-prod", name: "PROD - Jumpstart API" },
-        ],
-        APP923114: [
-            { id: "svc-dev", name: "DEV - Payments Portal" },
-            { id: "svc-test", name: "TEST - Payments Portal" },
-        ],
-    };
+    try {
+        const res = await fetch(`/tools/service/by-app/${appId}`, {
+            headers: { Accept: "application/json" },
+        });
 
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(allInstances[appId] || []);
-        }, 400);
-    });
+        if (!res.ok) {
+            throw new Error(`Failed to fetch instances (status ${res.status})`);
+        }
+
+        const data = await res.json();
+        // Map backend response to { id, name } structure
+        return data.map((inst) => ({
+            id: inst.identifier,        // e.g., "servicenow-167"
+            name: inst.name || inst.toolType || "Unnamed Instance",
+        }));
+    } catch (err) {
+        console.error("Error fetching service instances:", err);
+        throw err;
+    }
 };
 
 const Step3_TargetEnvironments = ({ formData, updateField }) => {
@@ -36,9 +37,15 @@ const Step3_TargetEnvironments = ({ formData, updateField }) => {
         const load = async () => {
             setLoading(true);
             setError("");
-            const result = await fetchServiceInstances(formData.appId);
-            setInstances(result);
-            if (result.length === 0) setError("No service instances found for this App ID.");
+            try {
+                const result = await fetchServiceInstances(formData.appId);
+                setInstances(result);
+                if (result.length === 0) {
+                    setError("No service instances found for this App ID.");
+                }
+            } catch (err) {
+                setError("Failed to load service instances.");
+            }
             setLoading(false);
         };
 

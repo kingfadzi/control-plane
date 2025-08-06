@@ -46,5 +46,15 @@ public class ToolController {
         return ResponseEntity.ok(repos);
     }
 
+    @GetMapping("/service/by-app/{appId}")
+    public ResponseEntity<List<Tool>> getServiceToolsByAppId(@PathVariable String appId) {
+        Long componentId = componentMappingService.resolveComponentId(appId);
+        if (componentId == null) {
+            throw new IllegalArgumentException("Component ID not found for App ID: " + appId);
+        }
+
+        List<Tool> tools = componentMappingService.findToolsByMappingType(componentId, "service_management");
+        return ResponseEntity.ok(tools);
+    }
 
 }

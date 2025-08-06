@@ -2,12 +2,21 @@ import React from "react";
 
 const labelClass = "inline-block w-44 text-slate-600";  // Adjust width as needed
 
-const Step6_Review = ({ formData, appMetadata }) => {
+const Step7_Review = ({ formData, appMetadata }) => {
     return (
         <div className="space-y-6">
             <h2 className="text-lg font-semibold text-slate-800">
                 Review Onboarding Summary
             </h2>
+
+            {/* Delivery Unit */}
+            <div>
+                <h3 className="text-base text-slate-700 mb-2 font-medium">Delivery Unit</h3>
+                <p>
+                    <span className={labelClass}>Name:</span>
+                    {formData.deliveryUnitName || "—"}
+                </p>
+            </div>
 
             {/* Application Details */}
             <div>
@@ -120,4 +129,4 @@ const Step6_Review = ({ formData, appMetadata }) => {
     );
 };
 
-export default Step6_Review;
+export default Step7_Review;
