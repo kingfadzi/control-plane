@@ -1,0 +1,28 @@
+# File: src/main/resources/application.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://helios:5432/lct_data
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jackson:
+    serialization:
+      indent_output: true
+
+  main:
+    banner-mode: off
+
+  application:
+    name: delivery-unit-backend
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com.example.onboarding: DEBUG
+    org.springframework.jdbc.core: DEBUG
+    org.springframework.jdbc.datasource: DEBUG
