@@ -5,6 +5,9 @@ import com.example.onboarding.util.SqlLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Collections;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -13,6 +16,8 @@ import java.util.Optional;
 
 @Repository
 public class ApplicationMetadataRepositoryImpl implements ApplicationMetadataRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationMetadataRepositoryImpl.class);
 
     private final JdbcTemplate jdbc;
     private final String appMetaSql = SqlLoader.load("app_metadata.sql");
@@ -32,20 +37,34 @@ public class ApplicationMetadataRepositoryImpl implements ApplicationMetadataRep
                 return null;
             }, appId);
 
-            if (parent == null) return Optional.empty();
+            if (parent == null) {
+                logger.debug("findByAppId({}): No ApplicationMetadata found, returning Optional.empty()", appId);
+                return Optional.empty();
+            }
 
             List<ApplicationMetadata> children = findChildren(appId);
             parent.setChildren(children);
+            logger.debug("findByAppId({}): Returning parent {} with {} children", appId, parent, children.size());
             return Optional.of(parent);
 
         } catch (Exception e) {
+            logger.error("Error retrieving ApplicationMetadata for appId={}", appId, e);
+            logger.debug("findByAppId({}): Exception occurred, returning Optional.empty()", appId);
             return Optional.empty();
         }
     }
 
     @Override
     public List<ApplicationMetadata> findChildren(String parentAppId) {
-        return jdbc.query(appChildrenSql, (rs, rowNum) -> mapRow(rs), parentAppId);
+        try {
+            List<ApplicationMetadata> children = jdbc.query(appChildrenSql, (rs, rowNum) -> mapRow(rs), parentAppId);
+            logger.debug("findChildren({}): Returning {} children: {}", parentAppId, children.size(), children);
+            return children;
+        } catch (Exception e) {
+            logger.error("Error retrieving children for parentAppId={}", parentAppId, e);
+            logger.debug("findChildren({}): Exception occurred, returning empty list", parentAppId);
+            return Collections.emptyList();
+        }
     }
 
     private ApplicationMetadata mapRow(ResultSet rs) throws SQLException {
