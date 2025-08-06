@@ -60,7 +60,8 @@ const ProductList = ({ onSelect }) => {
 
     const [appMetadata, setAppMetadata] = useState(null);
     const [selectedJiraProject, setSelectedJiraProject] = useState(null);
-    const [instanceMetadata, setInstanceMetadata] = useState([]); // ✅ metadata fetched once in Step 3
+    const [selectedRepos, setSelectedRepos] = useState([]); // ✅ stores { id, name }
+    const [instanceMetadata, setInstanceMetadata] = useState([]); // ✅ fetched once in Step 3
 
     const updateField = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -118,13 +119,14 @@ const ProductList = ({ onSelect }) => {
                     <Step2_RepoSelection
                         formData={formData}
                         updateField={updateField}
+                        setSelectedRepos={setSelectedRepos} // ✅ pass down
                     />
                 )}
                 {step === 3 && (
                     <Step3_TargetEnvironments
                         formData={formData}
                         updateField={updateField}
-                        setInstanceMetadata={setInstanceMetadata} // ✅ set from Step 3
+                        setInstanceMetadata={setInstanceMetadata}
                     />
                 )}
                 {step === 4 && (
@@ -151,6 +153,7 @@ const ProductList = ({ onSelect }) => {
                         appMetadata={appMetadata}
                         instanceMetadata={instanceMetadata}
                         selectedJiraProject={selectedJiraProject}
+                        selectedRepos={selectedRepos} // ✅ used to resolve repo names
                     />
                 )}
 
