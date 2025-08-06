@@ -2,6 +2,7 @@ package com.example.onboarding.service;
 
 import com.example.onboarding.model.AppMetadataResponse;
 import com.example.onboarding.model.ApplicationMetadata;
+import com.example.onboarding.model.EnvironmentInstance;
 import com.example.onboarding.repository.ApplicationMetadataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,20 @@ public class ApplicationMetadataService {
         } catch (Exception e) {
             logger.error("Unexpected error while assembling metadata for appId={}", appId, e);
             throw new RuntimeException("Failed to retrieve application metadata for appId=" + appId, e);
+        }
+    }
+
+    /**
+     * Retrieve all environment instances for the specified application.
+     */
+    public List<EnvironmentInstance> getEnvironmentsForApp(String appId) {
+        try {
+            List<EnvironmentInstance> instances = repo.findEnvironmentsByAppId(appId);
+            logger.debug("Retrieved {} environment instances for appId={}", instances.size(), appId);
+            return instances;
+        } catch (Exception e) {
+            logger.error("Error retrieving environment instances for appId={}", appId, e);
+            return Collections.emptyList();
         }
     }
 }
