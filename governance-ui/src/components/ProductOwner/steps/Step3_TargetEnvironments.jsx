@@ -26,13 +26,11 @@ const Step3_TargetEnvironments = ({ formData, updateField }) => {
     const [error, setError] = useState("");
     const [envError, setEnvError] = useState("");
 
-    const selectedIds = new Set(formData.instances || []);
-
-    // Get current selected environment type (if any)
+    // Determine current selected environment (if any)
     const currentEnv = (() => {
-        if (!formData.instances?.length) return null;
-        const selectedInstance = instances.find((i) => i.id === formData.instances[0]);
-        return selectedInstance?.environment || null;
+        const firstId = formData.instances?.[0];
+        const match = instances.find((i) => i.id === firstId);
+        return match?.environment || null;
     })();
 
     const toggleInstance = (instance) => {
@@ -78,7 +76,7 @@ const Step3_TargetEnvironments = ({ formData, updateField }) => {
         }
     }, [formData.appId]);
 
-    // Group instances by environment
+    // Group instances by environment type
     const groupedByEnv = instances.reduce((acc, inst) => {
         if (!acc[inst.environment]) acc[inst.environment] = [];
         acc[inst.environment].push(inst);
@@ -101,29 +99,34 @@ const Step3_TargetEnvironments = ({ formData, updateField }) => {
                         <div className="text-sm text-red-600 font-medium">{envError}</div>
                     )}
                     <div className="space-y-4">
-                        {Object.entries(groupedByEnv).map(([env, envInstances]) => (
-                            <div key={env}>
-                                <div className="text-slate-500 font-semibold uppercase text-xs mb-1">
-                                    {env}
+                        {Object.entries(groupedByEnv).map(([env, envInstances]) => {
+                            const selectedIds = new Set(formData.instances || []);
+                            return (
+                                <div key={env}>
+                                    <div className="text-slate-500 font-semibold uppercase text-xs mb-1">
+                                        {env}
+                                    </div>
+                                    <div className="space-y-2 ml-4">
+                                        {envInstances.map((inst) => (
+                                            <label
+                                                key={inst.id}
+                                                className="flex items-center space-x-2 text-sm"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(inst.id)}
+                                                    onChange={() => toggleInstance(inst)}
+                                                    className="form-checkbox text-blue-600"
+                                                />
+                                                <span className="text-slate-800">
+                                                    {inst.name}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="space-y-2 ml-4">
-                                    {envInstances.map((inst) => (
-                                        <label
-                                            key={inst.id}
-                                            className="flex items-center space-x-2 text-sm"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedIds.has(inst.id)}
-                                                onChange={() => toggleInstance(inst)}
-                                                className="form-checkbox text-blue-600"
-                                            />
-                                            <span className="text-slate-800">{inst.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </>
             )}
