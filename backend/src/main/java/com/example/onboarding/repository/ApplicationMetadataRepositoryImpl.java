@@ -82,7 +82,7 @@ public class ApplicationMetadataRepositoryImpl implements ApplicationMetadataRep
         meta.setApplicationParent(rs.getString("application_parent"));
         meta.setApplicationParentCorrelationId(rs.getString("application_parent_correlation_id"));
         meta.setHousePosition(rs.getString("house_position"));
-        meta.setCeaseDate(rs.getObject("cease_date", LocalDate.class));
+        //meta.setCeaseDate(rs.getObject("cease_date", LocalDate.class));
         meta.setBusinessApplicationSysId(rs.getString("business_application_sys_id"));
         meta.setApplicationTier(rs.getString("application_tier"));
         meta.setApplicationProductOwner(rs.getString("application_product_owner"));

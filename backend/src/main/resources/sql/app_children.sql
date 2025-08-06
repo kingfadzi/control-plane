@@ -12,7 +12,6 @@ SELECT
     application_parent,
     application_parent_correlation_id,
     house_position,
-    cease_date,
     business_application_sys_id,
     application_tier,
     application_product_owner,

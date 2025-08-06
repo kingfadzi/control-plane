@@ -9,11 +9,12 @@ const fetchRepos = async (appId) => {
         const grouped = data.reduce((acc, curr) => {
             const type = curr.toolType?.toLowerCase();
             const id = curr.identifier;
+            const name = curr.name;
 
-            if (!type || !id) return acc;
+            if (!type || !id || !name) return acc;
 
             if (!acc[type]) acc[type] = [];
-            acc[type].push(id);
+            acc[type].push({ id, name }); // Store both id and label
             return acc;
         }, {});
 
@@ -26,7 +27,7 @@ const fetchRepos = async (appId) => {
 
 const Step2_RepoSelection = ({ formData, updateField }) => {
     const [availableRepos, setAvailableRepos] = useState({});
-    const [source, setSource] = useState(""); // gitlab, bitbucket, github, etc.
+    const [source, setSource] = useState(""); // gitlab, github, etc.
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -36,8 +37,8 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
             const repos = await fetchRepos(formData.appId);
             setAvailableRepos(repos);
 
-            const matchingSource = Object.keys(repos).find(src =>
-                formData.repos.every(r => repos[src].includes(r))
+            const matchingSource = Object.keys(repos).find((src) =>
+                formData.repos.every((r) => repos[src].some((repo) => repo.id === r))
             );
 
             setSource(matchingSource || "");
@@ -50,18 +51,18 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
         if (!source || !availableRepos[source]) return;
 
         const isMismatched = formData.repos.some(
-            (r) => !availableRepos[source].includes(r)
+            (r) => !availableRepos[source].some((repo) => repo.id === r)
         );
         if (isMismatched) {
             updateField("repos", []);
         }
     }, [source]);
 
-    const handleToggleRepo = (repo) => {
+    const handleToggleRepo = (repoId) => {
         const current = formData.repos;
-        const updated = current.includes(repo)
-            ? current.filter((r) => r !== repo)
-            : [...current, repo];
+        const updated = current.includes(repoId)
+            ? current.filter((r) => r !== repoId)
+            : [...current, repoId];
         updateField("repos", updated);
     };
 
@@ -94,18 +95,21 @@ const Step2_RepoSelection = ({ formData, updateField }) => {
                 <>
                     <div>
                         <label className="text-sm font-semibold text-slate-700">
-                            Select Repositories from {source.charAt(0).toUpperCase() + source.slice(1)}
+                            Select Repositories from{" "}
+                            {source.charAt(0).toUpperCase() + source.slice(1)}
                         </label>
                         <div className="space-y-2 mt-2">
                             {availableRepos[source].map((repo) => (
-                                <label key={repo} className="flex items-center space-x-2">
+                                <label key={repo.id} className="flex items-center space-x-2">
                                     <input
                                         type="checkbox"
-                                        checked={formData.repos.includes(repo)}
-                                        onChange={() => handleToggleRepo(repo)}
+                                        checked={formData.repos.includes(repo.id)}
+                                        onChange={() => handleToggleRepo(repo.id)}
                                         className="accent-blue-600"
                                     />
-                                    <span className="text-sm text-slate-700">{repo}</span>
+                                    <span className="text-sm text-slate-700">
+                                        {repo.name}
+                                    </span>
                                 </label>
                             ))}
                         </div>
