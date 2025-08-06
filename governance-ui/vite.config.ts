@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',
     proxy: {
       // Forward all requests starting with /applications to the backend
       '/applications': {
@@ -15,5 +16,6 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-  }
+  },
+  appType: 'spa'
 })
