@@ -1,57 +1,70 @@
 package com.example.onboarding.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.onboarding.integrations.JiraClient;
+import com.example.onboarding.integrations.JiraFieldResolver;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.security.MessageDigest;
-import java.util.Base64;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 
 @Service
 public class JiraWebhookService {
+    private static final Logger log = LoggerFactory.getLogger(JiraWebhookService.class);
+    private final ObjectMapper om = new ObjectMapper();
+    private final JiraClient jira;
+    private final JiraFieldResolver fields;
 
-    private static final Logger logger = LoggerFactory.getLogger(JiraWebhookService.class);
+    // Display names for your custom fields (override via env if different)
+    private final String F_GOV_SUMMARY = System.getenv().getOrDefault("CPS_FIELD_GOV_SUMMARY", "Governance Summary");
+    private final String F_GOV_STATUS  = System.getenv().getOrDefault("CPS_FIELD_GOV_STATUS",  "Governance Status");
+    private final String F_NOTES       = System.getenv().getOrDefault("CPS_FIELD_NOTES",       "Control Pack Notes");
 
-    // TODO: Move to config or secret manager
-    private static final String WEBHOOK_SECRET = "my-shared-secret";
-
-    public void process(Map<String, String> headers, String payload) {
-        if (payload == null || payload.isEmpty()) {
-            throw new IllegalArgumentException("Empty webhook payload");
-        }
-
-        logger.debug("Webhook headers: {}", headers);
-        logger.info("Webhook payload (truncated to 500 chars): {}",
-                payload.length() > 500 ? payload.substring(0, 500) + "..." : payload);
-
-        // --- Optional: Verify webhook signature ---
-        verifySignature(headers, payload);
-
-        // --- TODO: Parse JSON payload ---
-        // Use Jackson or Gson to parse into a JiraWebhookEvent DTO
-        // Example:
-        // JiraWebhookEvent event = objectMapper.readValue(payload, JiraWebhookEvent.class);
-
-        // --- TODO: Apply matching rule ---
-        // if (event.issue.fields.project.key.equals("CAP") && event.issue.fields.issuetype.name.equals("Capability")) { ... }
-
-        // --- TODO: Call Jira REST API to update the issue ---
-        // Example: set Governance Summary, Governance Status, etc.
-
-        logger.info("Processed Jira webhook successfully (no action taken in MVP stub)");
+    public JiraWebhookService(JiraClient jira, JiraFieldResolver fields) {
+        this.jira = jira;
+        this.fields = fields;
     }
 
-    private void verifySignature(Map<String, String> headers, String payload) {
-        // This is a placeholder for HMAC or other signature verification
-        // Jira Cloud supports a "secret" in webhooks, but you need to validate it manually
-        // For MVP, we just check for a static header match
+    public void process(Map<String, String> headers, String payload) throws Exception {
+        if (payload == null || payload.isEmpty()) throw new IllegalArgumentException("Empty webhook payload");
 
-        String providedSecret = headers.getOrDefault("X-Webhook-Secret", "");
-        if (!WEBHOOK_SECRET.equals(providedSecret)) {
-            throw new SecurityException("Invalid webhook secret");
-        }
+        JsonNode root = om.readTree(payload);
+        String event = root.path("webhookEvent").asText("");
+        String issueKey = root.path("issue").path("key").asText("");
+        String issueType = root.path("issue").path("fields").path("issuetype").path("name").asText("");
+        String projectKey = root.path("issue").path("fields").path("project").path("key").asText("");
 
-        logger.debug("Webhook signature validated");
+        if (issueKey.isEmpty()) throw new IllegalArgumentException("No issue key");
+        log.info("Event={} issue={} type={} project={}", event, issueKey, issueType, projectKey);
+
+        // MVP: apply to any created issue (tighten with conditions if you want)
+        applyDemoPack(issueKey);
+    }
+
+    private void applyDemoPack(String issueKey) {
+        // Resolve custom field IDs (returns null if not found)
+        String cfSummary = fields.idFor(F_GOV_SUMMARY);
+        String cfStatus  = fields.idFor(F_GOV_STATUS);
+        String cfNotes   = fields.idFor(F_NOTES);
+
+        // Build mutable maps
+        Map<String, Object> update = new HashMap<>();
+        update.put("labels", List.of(Map.of("add", "governed")));
+
+        Map<String, Object> fieldSet = new HashMap<>();
+        fieldSet.put("duedate", LocalDate.now().plusDays(7).toString());
+        if (cfSummary != null) fieldSet.put(cfSummary, "Control Pack Demo applied");
+        if (cfStatus  != null) fieldSet.put(cfStatus, Map.of("value", "In Progress"));
+        if (cfNotes   != null) fieldSet.put(cfNotes,  "Auto-set by CPS");
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("update", update);
+        body.put("fields", fieldSet);
+
+        jira.updateIssue(issueKey, body);
+        jira.addComment(issueKey, "CPS: Applied CP-DEMO v1.0.0 · labels+=governed · due+7d");
+        log.info("Applied demo updates to {}", issueKey);
     }
 }
