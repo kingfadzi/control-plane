@@ -12,7 +12,7 @@ const ProductCard = ({ product, onSelect }) => (
             <h3 className="font-semibold text-slate-900">{product.name}</h3>
             {statusIcons[product.readiness]}
         </div>
-        <p className="text-sm text-slate-500">Code: {product.code}</p>
+        <p className="text-sm text-slate-500">ITBA: {product.code}</p>
         <p className="text-sm text-slate-500">
             Latest: {product.latestRelease} ({product.releaseStatus})
         </p>
