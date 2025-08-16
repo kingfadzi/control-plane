@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class JiraWebhookService {
@@ -23,6 +25,7 @@ public class JiraWebhookService {
     private final OpaClient opa;
     private final FormInstanceService forms;
 
+    // Config from application.yml (env overrides supported)
     @Value("${cps.webhook.disable-auth:true}")
     private boolean disableAuth;
 
@@ -67,7 +70,7 @@ public class JiraWebhookService {
         // === Minimal pack-driven flow ===
         applyPackFlow(issueKey, root);
 
-        // Keep your simple demo updates (optional)
+        // Optional: simple demo updates
         applyDemoPack(issueKey);
     }
 
@@ -98,9 +101,9 @@ public class JiraWebhookService {
 
     /** Simple field/label demo (optional) */
     private void applyDemoPack(String issueKey) {
-        String cfSummary = fields.idFor(F_GOV_SUMMARY);
-        String cfStatus  = fields.idFor(F_GOV_STATUS);
-        String cfNotes   = fields.idFor(F_NOTES);
+        String cfSummary = fields.idFor(F_GOV_SUMMARY); // e.g., "customfield_10200"
+        String cfStatus  = fields.idFor(F_GOV_STATUS);  // e.g., status select field
+        String cfNotes   = fields.idFor(F_NOTES);       // e.g., text field
 
         Map<String, Object> update = new HashMap<>();
         update.put("labels", List.of(Map.of("add", "governed")));

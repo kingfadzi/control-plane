@@ -22,7 +22,8 @@ public class JiraClient {
     @Value("${cps.jira.base-url:http://mars:8080}")
     private String baseUrl;
 
-    // If you’re using Bearer PAT on DC keep this; for Cloud switch to Basic (username+token)
+    // If you are on Jira DC with PAT-as-Bearer, keep this.
+    // If on Jira Cloud, switch to Basic (username+apiToken) pattern instead.
     @Value("${cps.jira.api-token:}")
     private String apiToken;
 
@@ -38,7 +39,7 @@ public class JiraClient {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
         if (apiToken != null && !apiToken.isBlank()) {
-            h.setBearerAuth(apiToken); // swap to Basic if needed
+            h.setBearerAuth(apiToken); // swap to Basic if needed for Jira Cloud
         }
         return h;
     }
@@ -64,7 +65,7 @@ public class JiraClient {
         return http.exchange(url, HttpMethod.GET, req, String.class);
     }
 
-    /** NEW: Add a Remote Link to an issue (simple MVP). */
+    /** Add a Remote Link to an issue (simple MVP). */
     public void addRemoteLink(String issueKey, String title, String linkUrl) {
         String url = baseUrl + "/rest/api/2/issue/" + issueKey + "/remotelink";
         log.debug("Jira POST {}", url);

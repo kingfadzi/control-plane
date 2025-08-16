@@ -14,7 +14,7 @@ public class OpaClient {
     private String defaultVersion;
 
     public OpaDecision evaluate(JsonNode webhookJson) {
-        // MVP: return defaults. Swap to HTTP POST to OPA when ready.
+        // MVP: return defaults. Replace with HTTP POST to OPA when ready.
         return new OpaDecision(defaultPack, defaultVersion);
     }
 }
