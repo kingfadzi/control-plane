@@ -38,14 +38,14 @@ public class JiraWebhookService {
 
     // Risk story settings
     @Value("${cps.risk.issue-type:Story}")
-    private String riskIssueType; // e.g., "Risk" if you have a custom type
+    private String riskIssueType; // e.g., "Risk" if you have a custom type in the project scheme
 
     @Value("${cps.risk.labels:governance,constraint,risk}")
     private String riskLabelsCsv; // comma-separated
 
-    // Questionnaire task settings
-    @Value("${cps.task.issue-type:Sub-task}")
-    private String questionnaireIssueType; // usually "Sub-task"
+    // Questionnaire issue settings (now created EXACTLY like Risk: a STANDARD issue)
+    @Value("${cps.task.issue-type:Story}")
+    private String questionnaireIssueType; // set this to "Story"/"Task" in your env to match Risk mode
 
     @Value("${cps.questionnaire.labels:governance,questionnaire}")
     private String questionnaireLabelsCsv; // comma-separated
@@ -95,9 +95,9 @@ public class JiraWebhookService {
 
     /**
      * OPA decision → for each recommended domain:
-     * - Create Risk story (blocks parent)
-     * - If questionnaire_required: create Sub-task under parent with form link (for the app owner)
-     * - Link Sub-task ↔ Risk with "relates to"
+     * - Create Risk (STANDARD issue) → link Risk blocks Parent
+     * - If questionnaire_required: create Questionnaire (STANDARD issue), add remote link,
+     *   then link Questionnaire ↔ Relates ↔ {Risk, Parent}
      * - Leave a single consolidated parent comment summarizing created items
      */
     private void applyPolicyFlow(String parentIssueKey, String projectKey, JsonNode webhookJson) {
@@ -139,7 +139,7 @@ public class JiraWebhookService {
             String packId = domainToPackId(domain);
             String packVersion = "v1";
 
-            // ---- 2a) Create domain risk (blocks parent) ----
+            // ---- 2a) Create domain Risk (STANDARD) and link Blocks -> Parent ----
             String riskIssueKey = null;
             if (needsConstraint) {
                 List<String> riskLabels = new ArrayList<>();
@@ -161,10 +161,11 @@ public class JiraWebhookService {
                 desc.append("- Triggers: ").append(triggers).append("\n\n");
                 desc.append("Notes\n");
                 desc.append("- This risk blocks ").append(parentIssueKey).append(".\n");
-                desc.append("- The questionnaire task (if required) will be created under ").append(parentIssueKey).append(" for the application owner.\n");
 
                 try {
+                    // Create Risk as STANDARD issue (by NAME)
                     riskIssueKey = jira.createIssue(projectKey, riskIssueType, riskSummary, desc.toString(), riskLabels);
+                    // Link: Risk (outward) blocks Parent (inward)
                     jira.linkIssuesBlocks(riskIssueKey, parentIssueKey);
                     summaryLines.add("[" + domain + "] Risk: " + riskIssueKey + " (blocks " + parentIssueKey + ")");
                 } catch (Exception e) {
@@ -173,49 +174,52 @@ public class JiraWebhookService {
                 }
             }
 
-            // ---- 2b) Create domain questionnaire task (Sub-task) under parent, with form link ----
+            // ---- 2b) Create domain Questionnaire (STANDARD) + remote link + Relates links ----
             if (Boolean.TRUE.equals(r.questionnaireRequired)) {
                 try {
                     // form instance & public URL
                     FormInstance fi = forms.findOrCreate(parentIssueKey, packId, packVersion);
                     String formUrl = forms.publicUrl(fi);
 
-                    List<String> taskLabels = new ArrayList<>();
-                    taskLabels.addAll(splitCsv(questionnaireLabelsCsv));
-                    taskLabels.add(domainSlug);
+                    List<String> qLabels = new ArrayList<>();
+                    qLabels.addAll(splitCsv(questionnaireLabelsCsv));
+                    qLabels.add(domainSlug);
 
-                    String taskSummary = "[Questionnaire][" + domain + "] Respond to risk " +
-                            (riskIssueKey != null ? riskIssueKey : "in " + domain) ;
-                    StringBuilder taskDesc = new StringBuilder();
-                    taskDesc.append("You are required to complete the ").append(domain).append(" questionnaire in response to the risk raised.\n\n");
-                    taskDesc.append("Form: ").append(formUrl).append("\n");
+                    String qSummary = "[Questionnaire][" + domain + "] " + parentIssueKey;
+                    StringBuilder qDesc = new StringBuilder();
+                    qDesc.append("You are required to complete the ").append(domain).append(" questionnaire.\n\n");
+                    qDesc.append("Form: ").append(formUrl).append("\n");
                     if (riskIssueKey != null) {
-                        taskDesc.append("Related risk: ").append(riskIssueKey).append("\n");
+                        qDesc.append("Related risk: ").append(riskIssueKey).append("\n");
                     }
-                    taskDesc.append("\nAcceptance criteria\n");
-                    taskDesc.append("- Questionnaire submitted\n");
-                    taskDesc.append("- Questions answered accurately and completely\n");
+                    qDesc.append("\nAcceptance criteria\n");
+                    qDesc.append("- Questionnaire submitted\n");
+                    qDesc.append("- Questions answered accurately and completely\n");
 
-                    String taskKey = jira.createSubtask(
+                    // Create Questionnaire as STANDARD issue (EXACT same call shape as Risk)
+                    String questionnaireKey = jira.createIssue(
                             projectKey,
-                            parentIssueKey,
-                            questionnaireIssueType,  // usually "Sub-task"
-                            taskSummary,
-                            taskDesc.toString(),
-                            taskLabels
+                            questionnaireIssueType, // treat as standard type name (e.g., "Story"/"Task")
+                            qSummary,
+                            qDesc.toString(),
+                            qLabels
                     );
 
-                    // Link to the form on the Sub-task (for the app owner)
-                    jira.addRemoteLink(taskKey, "Complete " + domain + " questionnaire", formUrl);
+                    // Add a remote link to the form
+                    jira.addRemoteLink(questionnaireKey, "Complete " + domain + " questionnaire", formUrl);
 
-                    // Relate the Sub-task to the Risk (for traceability across personas)
+                    // Relationships (different from Risk):
+                    // - Questionnaire ↔ Relates ↔ Risk (if Risk exists)
                     if (riskIssueKey != null) {
-                        jira.linkIssuesRelates(taskKey, riskIssueKey);
+                        jira.linkIssuesRelates(questionnaireKey, riskIssueKey);
                     }
+                    // - Questionnaire ↔ Relates ↔ Parent
+                    jira.linkIssuesRelates(questionnaireKey, parentIssueKey);
 
-                    summaryLines.add("[" + domain + "] Questionnaire: " + taskKey + " (sub-task under " + parentIssueKey + ")");
+                    summaryLines.add("[" + domain + "] Questionnaire: " + questionnaireKey +
+                            " (relates to " + (riskIssueKey != null ? riskIssueKey + ", " : "") + parentIssueKey + ")");
                 } catch (Exception e) {
-                    log.warn("Failed to create questionnaire sub-task for domain {} (parent {}): {}", domain, parentIssueKey, e.toString());
+                    log.warn("Failed to create/link questionnaire for domain {} (parent {}): {}", domain, parentIssueKey, e.toString());
                     summaryLines.add("[" + domain + "] Questionnaire: creation failed (" + e.getClass().getSimpleName() + ")");
                 }
             }
