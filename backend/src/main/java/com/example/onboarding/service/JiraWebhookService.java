@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,7 +18,8 @@ public class JiraWebhookService {
 
     private final ObjectMapper om = new ObjectMapper();
     private final JiraClient jira;
-    private final JiraFieldResolver fields;
+    @SuppressWarnings("unused")
+    private final JiraFieldResolver fields; // kept for future use
     private final OpaClient opa;
     private final FormInstanceService forms;
 
@@ -31,15 +29,6 @@ public class JiraWebhookService {
 
     @Value("${cps.webhook.secret:changeme}")
     private String expectedSecret;
-
-    @Value("${cps.fields.gov-summary:Governance Summary}")
-    private String F_GOV_SUMMARY;
-
-    @Value("${cps.fields.gov-status:Governance Status}")
-    private String F_GOV_STATUS;
-
-    @Value("${cps.fields.notes:Control Pack Notes}")
-    private String F_NOTES;
 
     public JiraWebhookService(JiraClient jira,
                               JiraFieldResolver fields,
@@ -54,7 +43,6 @@ public class JiraWebhookService {
     /** Entry point from controller */
     public void process(Map<String, String> headers, String payload) throws Exception {
         if (payload == null || payload.isEmpty()) throw new IllegalArgumentException("Empty webhook payload");
-
         verifyWebhook(headers);
 
         JsonNode root = om.readTree(payload);
@@ -67,11 +55,10 @@ public class JiraWebhookService {
 
         log.info("Event={} issue={} type={} project={}", event, issueKey, issueType, projectKey);
 
-        // === Minimal pack-driven flow ===
+        // ===== PACK FLOW ONLY (no demo field updates) =====
+        log.info(">>> PACKFLOW: starting");
         applyPackFlow(issueKey, root);
-
-        // Optional: simple demo updates
-        applyDemoPack(issueKey);
+        log.info(">>> PACKFLOW: done");
     }
 
     /** Toggleable auth (disabled by default) */
@@ -93,33 +80,12 @@ public class JiraWebhookService {
         FormInstance fi = forms.findOrCreate(issueKey, d.packId(), d.version());
         String formUrl = forms.publicUrl(fi);
 
+        log.info("Posting Remote Link to Jira for {} -> {}", issueKey, formUrl);
         jira.addRemoteLink(issueKey, "Complete " + d.packId() + " " + d.version(), formUrl);
+
+        log.info("Posting comment with form URL to {}", issueKey);
         jira.addComment(issueKey, "CPS: Please complete the questionnaire → " + formUrl);
 
         log.info("Posted form link for {}: {}", issueKey, formUrl);
-    }
-
-    /** Simple field/label demo (optional) */
-    private void applyDemoPack(String issueKey) {
-        String cfSummary = fields.idFor(F_GOV_SUMMARY); // e.g., "customfield_10200"
-        String cfStatus  = fields.idFor(F_GOV_STATUS);  // e.g., status select field
-        String cfNotes   = fields.idFor(F_NOTES);       // e.g., text field
-
-        Map<String, Object> update = new HashMap<>();
-        update.put("labels", List.of(Map.of("add", "governed")));
-
-        Map<String, Object> fieldSet = new HashMap<>();
-        fieldSet.put("duedate", LocalDate.now().plusDays(7).toString());
-        if (cfSummary != null) fieldSet.put(cfSummary, "Control Pack Demo applied");
-        if (cfStatus  != null) fieldSet.put(cfStatus,  Map.of("value", "In Progress"));
-        if (cfNotes   != null) fieldSet.put(cfNotes,   "Auto-set by CPS");
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("update", update);
-        body.put("fields", fieldSet);
-
-        jira.updateIssue(issueKey, body);
-        jira.addComment(issueKey, "CPS: Applied CP-DEMO v1.0.0 · labels+=governed · due+7d");
-        log.info("Applied demo updates to {}", issueKey);
     }
 }

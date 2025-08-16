@@ -32,7 +32,7 @@ public class FormInstanceService {
 
     public String publicUrl(FormInstance fi) {
         // e.g., http://localhost:5173/forms/<id>?t=<token>
-        String base = formBaseUrl.endsWith("/") ? formBaseUrl.substring(0, formBaseUrl.length()-1) : formBaseUrl;
+        String base = formBaseUrl.endsWith("/") ? formBaseUrl.substring(0, formBaseUrl.length() - 1) : formBaseUrl;
         return base + "/" + fi.getId() + "?t=" + fi.getToken();
     }
 }

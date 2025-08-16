@@ -22,8 +22,7 @@ public class JiraClient {
     @Value("${cps.jira.base-url:http://mars:8080}")
     private String baseUrl;
 
-    // If you are on Jira DC with PAT-as-Bearer, keep this.
-    // If on Jira Cloud, switch to Basic (username+apiToken) pattern instead.
+    // If on Jira Cloud, switch to Basic auth (username + api-token) instead of Bearer
     @Value("${cps.jira.api-token:}")
     private String apiToken;
 
@@ -39,7 +38,7 @@ public class JiraClient {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
         if (apiToken != null && !apiToken.isBlank()) {
-            h.setBearerAuth(apiToken); // swap to Basic if needed for Jira Cloud
+            h.setBearerAuth(apiToken); // swap to Basic for Jira Cloud if needed
         }
         return h;
     }
