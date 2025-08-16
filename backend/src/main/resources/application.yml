@@ -26,3 +26,15 @@ logging:
     com.example.onboarding: DEBUG
     org.springframework.jdbc.core: DEBUG
     org.springframework.jdbc.datasource: DEBUG
+
+cps:
+  jira:
+    base-url: http://helios:8080           # <--- set to your Jira URL
+    api-token: changeme                   # <--- set token here or override with env
+  webhook:
+    disable-auth: true                     # CPS_DISABLE_WEBHOOK_AUTH=true
+    secret: changeme                       # CPS_WEBHOOK_SECRET=...
+  fields:
+    gov-summary: "Governance Summary"      # CPS_FIELD_GOV_SUMMARY
+    gov-status: "Governance Status"        # CPS_FIELD_GOV_STATUS
+    notes: "Control Pack Notes"            # CPS_FIELD_NOTES
