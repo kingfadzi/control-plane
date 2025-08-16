@@ -29,13 +29,18 @@ logging:
 
 cps:
   jira:
-    base-url: http://helios:8080           # <--- set to your Jira URL
-    api-token: changeme                   # <--- set token here or override with env
+    base-url: http://helios:8080
+    api-token: changeme-token
   webhook:
-    disable-auth: true                     # CPS_DISABLE_WEBHOOK_AUTH=true
-    secret: changeme                        # CPS_WEBHOOK_SECRET=...
+    disable-auth: true
+    secret: changeme
   fields:
-    gov-summary: "Governance Summary"      # CPS_FIELD_GOV_SUMMARY
-    gov-status: "Governance Status"        # CPS_FIELD_GOV_STATUS
-    notes: "Control Pack Notes"            # CPS_FIELD_NOTES
+    gov-summary: "Governance Summary"
+    gov-status: "Governance Status"
+    notes: "Control Pack Notes"
+  default-pack:
+    id: DG-CAP-001
+    version: 1.0.0
+  forms:
+    base-url: http://localhost:5173/forms
 
