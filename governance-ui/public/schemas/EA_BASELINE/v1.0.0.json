@@ -1,0 +1,77 @@
+{
+  "jsonSchema": {
+    "type": "object",
+    "properties": {
+      "applicationId": { "type": "string", "title": "Application ID" },
+      "architectureOwner": { "type": "string", "title": "Architecture Owner (email or group)" },
+      "architectureType": {
+        "type": "string",
+        "title": "Architecture Type",
+        "enum": ["Monolith", "Microservices", "Serverless", "Event-Driven", "SOA"]
+      },
+      "integrationPattern": {
+        "type": "string",
+        "title": "Primary Integration Pattern",
+        "enum": ["REST", "gRPC", "Messaging", "ETL/Batch", "GraphQL"]
+      },
+      "hasArchitectureVision": { "type": "boolean", "title": "Architecture Vision/ADR Exists?" },
+      "adrUrl": { "type": "string", "title": "ADR / Architecture Doc URL", "format": "uri" },
+      "standardsCompliance": {
+        "type": "string",
+        "title": "Standards Compliance",
+        "enum": ["Full", "Partial", "None"]
+      },
+      "notes": { "type": "string", "title": "Notes", "maxLength": 1000 }
+    },
+    "required": [
+      "applicationId",
+      "architectureOwner",
+      "architectureType",
+      "integrationPattern"
+    ],
+    "allOf": [
+      {
+        "if": { "properties": { "hasArchitectureVision": { "const": true } } },
+        "then": { "required": ["adrUrl"] }
+      }
+    ]
+  },
+  "uiSchema": {
+    "type": "VerticalLayout",
+    "elements": [
+      {
+        "type": "Group",
+        "label": "Context",
+        "elements": [
+          { "type": "Control", "scope": "#/properties/applicationId" },
+          { "type": "Control", "scope": "#/properties/architectureOwner" }
+        ]
+      },
+      {
+        "type": "Group",
+        "label": "Architecture",
+        "elements": [
+          { "type": "Control", "scope": "#/properties/architectureType" },
+          { "type": "Control", "scope": "#/properties/integrationPattern" },
+          { "type": "Control", "scope": "#/properties/hasArchitectureVision" },
+          {
+            "type": "Control",
+            "scope": "#/properties/adrUrl",
+            "rule": {
+              "effect": "SHOW",
+              "condition": { "scope": "#/properties/hasArchitectureVision", "schema": { "const": true } }
+            }
+          },
+          { "type": "Control", "scope": "#/properties/standardsCompliance" }
+        ]
+      },
+      {
+        "type": "Group",
+        "label": "Additional",
+        "elements": [
+          { "type": "Control", "scope": "#/properties/notes", "options": { "multi": true } }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "jsonSchema": {
+    "type": "object",
+    "properties": {
+      "applicationId": { "type": "string", "title": "Application ID" },
+      "securityRating": {
+        "type": "string",
+        "title": "Security Rating",
+        "enum": ["A1", "A2", "B", "C", "D"]
+      },
+      "internetFacing": { "type": "boolean", "title": "Internet-facing?" },
+      "authMethod": {
+        "type": "string",
+        "title": "Primary Authentication",
+        "enum": ["OIDC/SSO", "SAML", "OAuth2", "mTLS", "Basic", "None"]
+      },
+      "networkZone": {
+        "type": "string",
+        "title": "Network Zone",
+        "enum": ["Public", "Private", "Restricted"]
+      },
+      "mfaEnforced": { "type": "boolean", "title": "MFA Enforced" },
+      "vulnerabilityScanning": { "type": "boolean", "title": "Vulnerability Scanning Enabled" },
+      "dependencyScanning": { "type": "boolean", "title": "Dependency/SSBOM Scanning Enabled" },
+      "containerScanning": { "type": "boolean", "title": "Container/Image Scanning Enabled" },
+      "wafEnabled": { "type": "boolean", "title": "WAF / Edge Protection Enabled" },
+      "secretsInRepo": { "type": "boolean", "title": "Any Secrets in Repos?" },
+      "secretsManager": {
+        "type": "string",
+        "title": "Secrets Manager",
+        "enum": ["Vault", "AWS Secrets Manager", "GCP Secret Manager", "Azure Key Vault", "Other"]
+      },
+      "exceptionExists": { "type": "boolean", "title": "Any Security Exception / Risk Acceptance?" },
+      "exceptionDetails": { "type": "string", "title": "Exception Details" },
+      "evidenceLinks": {
+        "type": "array",
+        "title": "Evidence Links",
+        "items": { "type": "string" }
+      },
+      "attestation": {
+        "type": "boolean",
+        "title": "I attest the above is accurate to the best of my knowledge"
+      },
+      "notes": { "type": "string", "title": "Notes" }
+    },
+    "required": ["applicationId", "securityRating", "authMethod", "networkZone"]
+  },
+  "uiSchema": {
+    "type": "Categorization",
+    "label": "Security Baseline",
+    "options": { "variant": "stepper", "showNavButtons": true },
+    "elements": [
+      {
+        "type": "Category",
+        "label": "1) Context",
+        "elements": [
+          { "type": "Control", "scope": "#/properties/applicationId" },
+          { "type": "Control", "scope": "#/properties/authMethod" },
+          { "type": "Control", "scope": "#/properties/networkZone" }
+        ]
+      },
+      {
+        "type": "Category",
+        "label": "2) Classification & Controls",
+        "elements": [
+          { "type": "Control", "scope": "#/properties/securityRating" },
+          { "type": "Control", "scope": "#/properties/internetFacing" },
+          { "type": "Control", "scope": "#/properties/mfaEnforced" },
+          { "type": "Control", "scope": "#/properties/vulnerabilityScanning" },
+          { "type": "Control", "scope": "#/properties/dependencyScanning" },
+          { "type": "Control", "scope": "#/properties/containerScanning" },
+          { "type": "Control", "scope": "#/properties/wafEnabled" },
+          { "type": "Control", "scope": "#/properties/secretsInRepo" },
+          { "type": "Control", "scope": "#/properties/secretsManager" }
+        ]
+      },
+      {
+        "type": "Category",
+        "label": "3) Review & Submit",
+        "elements": [
+          { "type": "Control", "scope": "#/properties/exceptionExists" },
+          { "type": "Control", "scope": "#/properties/exceptionDetails" },
+          { "type": "Control", "scope": "#/properties/evidenceLinks" },
+          { "type": "Control", "scope": "#/properties/notes", "options": { "multi": true } },
+          { "type": "Control", "scope": "#/properties/attestation" }
+        ]
+      }
+    ]
+  }
+}

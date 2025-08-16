@@ -1,0 +1,11 @@
+{
+  "DATA_BASELINE": {
+    "v1.0.0": { "path": "/schemas/DATA_BASELINE/v1.0.0.json" }
+  },
+  "EA_BASELINE": {
+    "v1.0.0": { "path": "/schemas/EA_BASELINE/v1.0.0.json" }
+  },
+  "SECURITY_BASELINE": {
+    "v1.0.0": { "path": "/schemas/SECURITY_BASELINE/v1.0.0.json" }
+  }
+}

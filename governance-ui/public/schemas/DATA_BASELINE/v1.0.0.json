@@ -1,0 +1,33 @@
+{
+  "jsonSchema": {
+    "type": "object",
+    "properties": {
+      "applicationId": { "type": "string", "title": "Application ID" },
+      "dataOwner": { "type": "string", "title": "Data Owner (email or group)" },
+      "classification": {
+        "type": "string",
+        "title": "Data Classification",
+        "enum": ["Public","Internal","Restricted","Confidential"]
+      },
+      "containsPII": { "type": "boolean", "title": "Contains PII?" },
+      "storageLocations": {
+        "type": "array",
+        "title": "Storage Locations",
+        "items": { "type": "string", "enum": ["AWS-S3","AWS-RDS","GCP-BQ","On-Prem-DB","Snowflake","Other"] },
+        "uniqueItems": true,
+        "minItems": 1
+      }
+    },
+    "required": ["applicationId","dataOwner","classification","storageLocations"]
+  },
+  "uiSchema": {
+    "type": "VerticalLayout",
+    "elements": [
+      { "type": "Control", "scope": "#/properties/applicationId" },
+      { "type": "Control", "scope": "#/properties/dataOwner" },
+      { "type": "Control", "scope": "#/properties/classification" },
+      { "type": "Control", "scope": "#/properties/containsPII" },
+      { "type": "Control", "scope": "#/properties/storageLocations" }
+    ]
+  }
+}
