@@ -1,83 +1,62 @@
 package com.example.onboarding.integrations;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Component
 public class JiraClient {
 
-    private static final Logger log = LoggerFactory.getLogger(JiraClient.class);
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final String baseUrl;
+    private final String username;
+    private final String token;
 
-    private final RestTemplate http;
+    public JiraClient(
+            @Value("${jira.base-url}") String baseUrl,
+            @Value("${jira.username}") String username
+    ) {
+        this.baseUrl = baseUrl;
+        this.username = username;
 
-    @Value("${cps.jira.base-url:http://mars:8080}")
-    private String baseUrl;
-
-    // If on Jira Cloud, switch to Basic auth (username + api-token) instead of Bearer
-    @Value("${cps.jira.api-token:}")
-    private String apiToken;
-
-    public JiraClient() {
-        this.http = new RestTemplate();
-        SimpleClientHttpRequestFactory rf = new SimpleClientHttpRequestFactory();
-        rf.setConnectTimeout(Duration.ofSeconds(3));
-        rf.setReadTimeout(Duration.ofSeconds(15));
-        this.http.setRequestFactory(rf);
-    }
-
-    private HttpHeaders authJson() {
-        HttpHeaders h = new HttpHeaders();
-        h.setContentType(MediaType.APPLICATION_JSON);
-        if (apiToken != null && !apiToken.isBlank()) {
-            h.setBearerAuth(apiToken); // swap to Basic for Jira Cloud if needed
+        // Read JIRA_TOKEN from shell env at runtime
+        String envToken = System.getenv("JIRA_TOKEN");
+        if (envToken == null || envToken.isEmpty()) {
+            throw new IllegalStateException("JIRA_TOKEN environment variable is not set");
         }
-        return h;
+        this.token = envToken;
     }
 
-    public void updateIssue(String issueKey, Map<String, Object> body) {
-        String url = baseUrl + "/rest/api/2/issue/" + issueKey;
-        log.debug("Jira PUT {}", url);
-        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
-        http.exchange(url, HttpMethod.PUT, req, String.class);
+    private HttpHeaders authHeaders() {
+        String auth = username + ":" + token;
+        String encoded = Base64.getEncoder()
+                .encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
+        return headers;
     }
 
-    public void addComment(String issueKey, String comment) {
-        String url = baseUrl + "/rest/api/2/issue/" + issueKey + "/comment";
-        log.debug("Jira POST {}", url);
-        HttpEntity<Map<String, String>> req = new HttpEntity<>(Map.of("body", comment), authJson());
-        http.postForEntity(url, req, String.class);
+    public String get(String path) {
+        HttpEntity<Void> request = new HttpEntity<>(authHeaders());
+        ResponseEntity<String> response =
+                restTemplate.exchange(baseUrl + path, HttpMethod.GET, request, String.class);
+        return response.getBody();
     }
 
-    public ResponseEntity<String> getFields() {
-        String url = baseUrl + "/rest/api/2/field";
-        log.debug("Jira GET {}", url);
-        HttpEntity<Void> req = new HttpEntity<>(authJson());
-        return http.exchange(url, HttpMethod.GET, req, String.class);
+    public void put(String path, Object body) {
+        HttpEntity<Object> request = new HttpEntity<>(body, authHeaders());
+        restTemplate.exchange(baseUrl + path, HttpMethod.PUT, request, String.class);
     }
 
-    /** Add a Remote Link to an issue (simple MVP). */
-    public void addRemoteLink(String issueKey, String title, String linkUrl) {
-        String url = baseUrl + "/rest/api/2/issue/" + issueKey + "/remotelink";
-        log.debug("Jira POST {}", url);
-
-        Map<String, Object> object = new HashMap<>();
-        object.put("title", title);
-        object.put("url", linkUrl);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("object", object);
-        body.put("relationship", "is required by");
-
-        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
-        http.postForEntity(url, req, String.class);
+    public void post(String path, Object body) {
+        HttpEntity<Object> request = new HttpEntity<>(body, authHeaders());
+        restTemplate.exchange(baseUrl + path, HttpMethod.POST, request, String.class);
     }
 }

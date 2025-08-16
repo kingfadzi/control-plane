@@ -30,7 +30,6 @@ logging:
 cps:
   jira:
     base-url: http://helios:8080
-    api-token: changeme-token
   webhook:
     disable-auth: true
     secret: changeme
