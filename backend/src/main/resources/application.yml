@@ -41,7 +41,7 @@ cps:
     id: DG-CAP-001
     version: 1.0.0
   forms:
-    base-url: http://localhost:5173/forms
+    base-url: http://mars:5173/forms
 
 opa:
   url: http://mars:8181/v1/data/change_arb
