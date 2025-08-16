@@ -88,16 +88,15 @@ public class JiraClient {
         http.postForEntity(url, req, String.class);
     }
 
-    /* -------------------- new: risk story / constraints -------------------- */
+    /* -------------------- create issues -------------------- */
 
     /**
-     * Create a Jira issue and return its key (e.g., STRAT-123).
+     * Create a top-level Jira issue and return its key (e.g., STRAT-123).
      * @param projectKey   Project key (e.g., "STRAT")
      * @param issueType    Issue type name (e.g., "Story", "Risk")
      * @param summary      Summary text
      * @param description  Optional description (null allowed)
      * @param labels       Optional labels (null/empty allowed)
-     * @return new issue key
      */
     @SuppressWarnings("unchecked")
     public String createIssue(String projectKey,
@@ -130,8 +129,51 @@ public class JiraClient {
     }
 
     /**
+     * Create a Sub-task under a parent issue and return its key.
+     * @param projectKey    Project key (e.g., "STRAT")
+     * @param parentIssueKey Parent issue key (e.g., "STRAT-221")
+     * @param issueType      Sub-task issue type name (usually "Sub-task")
+     * @param summary        Summary text
+     * @param description    Optional description
+     * @param labels         Optional labels
+     */
+    @SuppressWarnings("unchecked")
+    public String createSubtask(String projectKey,
+                                String parentIssueKey,
+                                String issueType,
+                                String summary,
+                                String description,
+                                List<String> labels) {
+        String url = baseUrl + "/rest/api/2/issue";
+        log.debug("Jira POST {}", url);
+
+        Map<String, Object> fields = new HashMap<>();
+        // For subtasks, parent is required; project is typically implied by parent but we include it for clarity
+        fields.put("parent", Map.of("key", parentIssueKey));
+        fields.put("project", Map.of("key", projectKey));
+        fields.put("issuetype", Map.of("name", issueType)); // ensure this is a sub-task type
+        fields.put("summary", summary);
+        if (description != null) fields.put("description", description);
+        if (labels != null && !labels.isEmpty()) fields.put("labels", labels);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("fields", fields);
+
+        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
+        ResponseEntity<Map> resp = http.postForEntity(url, req, Map.class);
+
+        if (resp.getBody() == null || resp.getBody().get("key") == null) {
+            throw new IllegalStateException("Jira createSubtask: response missing 'key'");
+        }
+        String key = resp.getBody().get("key").toString();
+        log.info("Created Jira sub-task {} (parent={}, type={}, project={})", key, parentIssueKey, issueType, projectKey);
+        return key;
+    }
+
+    /* -------------------- links -------------------- */
+
+    /**
      * Link two issues with a given link type name.
-     * Example types: "Blocks", "Relates", "Cloners", etc.
      * Direction here: inwardIssue <-[type]- outwardIssue
      */
     public void linkIssues(String inwardIssueKey, String outwardIssueKey, String linkTypeName) {
@@ -154,7 +196,13 @@ public class JiraClient {
      * i.e., parent shows "is blocked by <risk>".
      */
     public void linkIssuesBlocks(String riskIssueKey, String parentIssueKey) {
-        // For "Blocks": inward side = "is blocked by", outward side = "blocks"
+        // For "Blocks": outward side = "blocks", inward side = "is blocked by"
         linkIssues(parentIssueKey, riskIssueKey, "Blocks");
+    }
+
+    /** Convenience: create a symmetric "Relates" link between A and B. */
+    public void linkIssuesRelates(String issueAKey, String issueBKey) {
+        // "Relates" is symmetric; direction doesn't materially matter
+        linkIssues(issueAKey, issueBKey, "Relates");
     }
 }

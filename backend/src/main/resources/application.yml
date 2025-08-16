@@ -43,3 +43,11 @@ cps:
   forms:
     base-url: http://localhost:5173/forms
 
+opa:
+  url: http://mars:8181/v1/data/change_arb
+  connectTimeoutMs: 2000
+  readTimeoutMs: 4000
+
+
+
+
