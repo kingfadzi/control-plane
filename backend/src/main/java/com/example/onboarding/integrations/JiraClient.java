@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -21,9 +22,7 @@ public class JiraClient {
     private final String baseUrl;
     private final String token; // read from env JIRA_TOKEN
 
-    public JiraClient(
-            @Value("${cps.jira.base-url:http://mars:8080}") String baseUrl
-    ) {
+    public JiraClient(@Value("${cps.jira.base-url:http://mars:8080}") String baseUrl) {
         this.baseUrl = baseUrl;
 
         // Read JIRA token from shell env; fail fast if missing
@@ -45,9 +44,11 @@ public class JiraClient {
     private HttpHeaders authJson() {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
-        h.setBearerAuth(token); // NOTE: if you move to Jira Cloud, switch to Basic (email:apiToken)
+        h.setBearerAuth(token); // NOTE: switch to Basic (email:apiToken) if using Jira Cloud
         return h;
     }
+
+    /* -------------------- existing helpers -------------------- */
 
     public void updateIssue(String issueKey, Map<String, Object> body) {
         String url = baseUrl + "/rest/api/2/issue/" + issueKey;
@@ -85,5 +86,75 @@ public class JiraClient {
 
         HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
         http.postForEntity(url, req, String.class);
+    }
+
+    /* -------------------- new: risk story / constraints -------------------- */
+
+    /**
+     * Create a Jira issue and return its key (e.g., STRAT-123).
+     * @param projectKey   Project key (e.g., "STRAT")
+     * @param issueType    Issue type name (e.g., "Story", "Risk")
+     * @param summary      Summary text
+     * @param description  Optional description (null allowed)
+     * @param labels       Optional labels (null/empty allowed)
+     * @return new issue key
+     */
+    @SuppressWarnings("unchecked")
+    public String createIssue(String projectKey,
+                              String issueType,
+                              String summary,
+                              String description,
+                              List<String> labels) {
+        String url = baseUrl + "/rest/api/2/issue";
+        log.debug("Jira POST {}", url);
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("project", Map.of("key", projectKey));
+        fields.put("issuetype", Map.of("name", issueType));
+        fields.put("summary", summary);
+        if (description != null) fields.put("description", description);
+        if (labels != null && !labels.isEmpty()) fields.put("labels", labels);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("fields", fields);
+
+        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
+        ResponseEntity<Map> resp = http.postForEntity(url, req, Map.class);
+
+        if (resp.getBody() == null || resp.getBody().get("key") == null) {
+            throw new IllegalStateException("Jira createIssue: response missing 'key'");
+        }
+        String key = resp.getBody().get("key").toString();
+        log.info("Created Jira issue {} (type={}, project={})", key, issueType, projectKey);
+        return key;
+    }
+
+    /**
+     * Link two issues with a given link type name.
+     * Example types: "Blocks", "Relates", "Cloners", etc.
+     * Direction here: inwardIssue <-[type]- outwardIssue
+     */
+    public void linkIssues(String inwardIssueKey, String outwardIssueKey, String linkTypeName) {
+        String url = baseUrl + "/rest/api/2/issueLink";
+        log.debug("Jira POST {}", url);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("type", Map.of("name", linkTypeName));
+        body.put("inwardIssue", Map.of("key", inwardIssueKey));
+        body.put("outwardIssue", Map.of("key", outwardIssueKey));
+
+        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
+        http.postForEntity(url, req, String.class);
+        log.info("Linked issues {} -[{}]-> {}", inwardIssueKey, linkTypeName, outwardIssueKey);
+    }
+
+    /**
+     * Convenience for constraints:
+     * Risk Story (blocker) --Blocks--> Parent (blocked)
+     * i.e., parent shows "is blocked by <risk>".
+     */
+    public void linkIssuesBlocks(String riskIssueKey, String parentIssueKey) {
+        // For "Blocks": inward side = "is blocked by", outward side = "blocks"
+        linkIssues(parentIssueKey, riskIssueKey, "Blocks");
     }
 }

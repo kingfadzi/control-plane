@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -19,7 +21,7 @@ public class JiraWebhookService {
     private final ObjectMapper om = new ObjectMapper();
     private final JiraClient jira;
     @SuppressWarnings("unused")
-    private final JiraFieldResolver fields; // kept for future use
+    private final JiraFieldResolver fields; // reserved for future field updates
     private final OpaClient opa;
     private final FormInstanceService forms;
 
@@ -29,6 +31,13 @@ public class JiraWebhookService {
 
     @Value("${cps.webhook.secret:changeme}")
     private String expectedSecret;
+
+    // Risk story “constraint” settings
+    @Value("${cps.risk.issue-type:Story}")
+    private String riskIssueType; // e.g., "Story" or custom "Risk"
+
+    @Value("${cps.risk.labels:governance,constraint,risk}")
+    private String riskLabelsCsv; // comma-separated
 
     public JiraWebhookService(JiraClient jira,
                               JiraFieldResolver fields,
@@ -55,9 +64,9 @@ public class JiraWebhookService {
 
         log.info("Event={} issue={} type={} project={}", event, issueKey, issueType, projectKey);
 
-        // ===== PACK FLOW ONLY (no demo field updates) =====
+        // ===== PACK FLOW + CONSTRAINT (Risk Story) =====
         log.info(">>> PACKFLOW: starting");
-        applyPackFlow(issueKey, root);
+        applyPackFlow(issueKey, projectKey, root);
         log.info(">>> PACKFLOW: done");
     }
 
@@ -72,20 +81,47 @@ public class JiraWebhookService {
         log.debug("Webhook auth passed");
     }
 
-    /** OPA -> FormInstance -> Jira Remote Link + Comment */
-    private void applyPackFlow(String issueKey, JsonNode webhookJson) {
-        OpaDecision d = opa.evaluate(webhookJson); // returns packId + version
-        log.info("OPA decision for {} => pack={} version={}", issueKey, d.packId(), d.version());
+    /**
+     * OPA -> FormInstance -> Remote Link on parent -> Create Risk Story (constraint)
+     * -> Link (Risk blocks Parent) -> Remote Link on risk -> Comment on parent
+     */
+    private void applyPackFlow(String parentIssueKey, String projectKey, JsonNode webhookJson) {
+        // 1) Policy decision (which pack/version)
+        OpaDecision d = opa.evaluate(webhookJson);
+        log.info("OPA decision for {} => pack={} version={}", parentIssueKey, d.packId(), d.version());
 
-        FormInstance fi = forms.findOrCreate(issueKey, d.packId(), d.version());
+        // 2) Create/reuse form instance + URL
+        FormInstance fi = forms.findOrCreate(parentIssueKey, d.packId(), d.version());
         String formUrl = forms.publicUrl(fi);
 
-        log.info("Posting Remote Link to Jira for {} -> {}", issueKey, formUrl);
-        jira.addRemoteLink(issueKey, "Complete " + d.packId() + " " + d.version(), formUrl);
+        // 3) Add questionnaire link on the parent (remote link + comment)
+        log.info("Posting Remote Link to Jira for {} -> {}", parentIssueKey, formUrl);
+        jira.addRemoteLink(parentIssueKey, "Complete " + d.packId() + " " + d.version(), formUrl);
 
-        log.info("Posting comment with form URL to {}", issueKey);
-        jira.addComment(issueKey, "CPS: Please complete the questionnaire → " + formUrl);
+        log.info("Posting comment with form URL to {}", parentIssueKey);
+        jira.addComment(parentIssueKey, "CPS: Please complete the questionnaire → " + formUrl);
 
-        log.info("Posted form link for {}: {}", issueKey, formUrl);
+        // 4) Create the Risk Story as the constraint
+        String riskSummary = "[Risk] " + parentIssueKey + " · " + d.packId() + " " + d.version();
+        String riskDescription = "Automatically created by CPS as a governance constraint.\n\n"
+                + "Questionnaire: " + formUrl + "\n"
+                + "Pack: " + d.packId() + " " + d.version() + "\n";
+        List<String> riskLabels = Arrays.stream(riskLabelsCsv.split("\\s*,\\s*"))
+                .filter(s -> !s.isBlank()).toList();
+
+        String riskIssueKey = jira.createIssue(projectKey, riskIssueType, riskSummary, riskDescription, riskLabels);
+        log.info("Risk story {} created (constraint for {})", riskIssueKey, parentIssueKey);
+
+        // 5) Link: Risk Story blocks Parent (so parent shows "is blocked by <risk>")
+        jira.linkIssuesBlocks(riskIssueKey, parentIssueKey);
+        log.info("Linked constraint: {} blocks {}", riskIssueKey, parentIssueKey);
+
+        // 6) Put the questionnaire link on the Risk Story too (for convenience)
+        jira.addRemoteLink(riskIssueKey, "Questionnaire Link", formUrl);
+
+        // 7) Notify on the parent
+        jira.addComment(parentIssueKey, "CPS: Risk story created as constraint → " + riskIssueKey);
+
+        log.info("Constraint established: parent={} risk={} url={}", parentIssueKey, riskIssueKey, formUrl);
     }
 }
