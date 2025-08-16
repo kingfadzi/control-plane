@@ -38,3 +38,4 @@ cps:
     gov-summary: "Governance Summary"      # CPS_FIELD_GOV_SUMMARY
     gov-status: "Governance Status"        # CPS_FIELD_GOV_STATUS
     notes: "Control Pack Notes"            # CPS_FIELD_NOTES
+
