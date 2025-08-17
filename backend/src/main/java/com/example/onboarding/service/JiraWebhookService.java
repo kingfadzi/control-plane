@@ -36,19 +36,26 @@ public class JiraWebhookService {
     @Value("${cps.webhook.secret:changeme}")
     private String expectedSecret;
 
-    // Risk story settings
+    // Risk issue settings (STANDARD issue by NAME, default Story)
     @Value("${cps.risk.issue-type:Story}")
     private String riskIssueType; // e.g., "Risk" if you have a custom type in the project scheme
 
     @Value("${cps.risk.labels:governance,constraint,risk}")
     private String riskLabelsCsv; // comma-separated
 
-    // Questionnaire issue settings (now created EXACTLY like Risk: a STANDARD issue)
+    // Questionnaire settings (STANDARD issue exactly like Risk, default Story)
     @Value("${cps.task.issue-type:Story}")
-    private String questionnaireIssueType; // set this to "Story"/"Task" in your env to match Risk mode
+    private String questionnaireIssueType; // standard issue type (Story/Task/etc)
 
     @Value("${cps.questionnaire.labels:governance,questionnaire}")
     private String questionnaireLabelsCsv; // comma-separated
+
+    // Attestation settings (STANDARD issue, blocks parent; default Story)
+    @Value("${cps.attestation.issue-type:Story}")
+    private String attestationIssueType; // standard issue type (Story/Task/etc)
+
+    @Value("${cps.attestation.labels:governance,attestation}")
+    private String attestationLabelsCsv; // comma-separated
 
     public JiraWebhookService(JiraClient jira,
                               JiraFieldResolver fields,
@@ -94,14 +101,14 @@ public class JiraWebhookService {
     }
 
     /**
-     * OPA decision → for each recommended domain:
-     * - Create Risk (STANDARD issue) → link Risk blocks Parent
-     * - If questionnaire_required: create Questionnaire (STANDARD issue), add remote link,
-     *   then link Questionnaire ↔ Relates ↔ {Risk, Parent}
-     * - Leave a single consolidated parent comment summarizing created items
+     * OPA decision:
+     * - Risks: create per domain (STANDARD issue) and link Risk blocks Parent (only if domains exist).
+     * - Questionnaires: create per domain (STANDARD), add remote link, link Questionnaire ↔ Relates ↔ {Risk, Parent}.
+     * - Attestation: when no domains but attestation_required, create STANDARD issue, add remote link, link Attestation blocks Parent.
+     * - Leave a single consolidated parent comment summarizing created items.
      */
     private void applyPolicyFlow(String parentIssueKey, String projectKey, JsonNode webhookJson) {
-        // 1) Build OPA input exactly as required
+        // 1) Build OPA input
         OpaInput in = new OpaInput();
         in.criticality     = textAt(webhookJson, "issue.fields.criticality");
         in.security        = textAt(webhookJson, "issue.fields.security");
@@ -111,7 +118,7 @@ public class JiraWebhookService {
         in.confidentiality = textAt(webhookJson, "issue.fields.confidentiality");
         in.hasDependencies = boolAt(webhookJson, "issue.fields.has_dependencies");
 
-        // 2) Evaluate policy (no fallbacks)
+        // 2) Evaluate policy
         OpaResponse resp = opa.evaluate(new OpaRequest(in));
         if (resp == null || resp.result == null) {
             log.warn("OPA decision unavailable for {}", parentIssueKey);
@@ -119,29 +126,24 @@ public class JiraWebhookService {
         }
         OpaResult r = resp.result;
 
-        log.info("OPA decision for {} => review_mode={} assessment_required={} mandatory={} questionnaire_required={} attestation_required={} domains={}",
+        log.info("OPA decision for {} => review_mode={} assessment_required={} mandatory={} questionnaire_required={} attestation_required={}",
                 parentIssueKey, r.reviewMode, r.assessmentRequired, r.assessmentMandatory,
-                r.questionnaireRequired, r.attestationRequired, safeList(r.arbDomains));
+                r.questionnaireRequired, r.attestationRequired);
 
         List<String> domains = safeList(r.arbDomains);
-        if (domains.isEmpty()) {
-            log.info("No domains returned by OPA for {}. Skipping domain-scoped actions.", parentIssueKey);
-            return;
-        }
 
-        boolean needsConstraint = Boolean.TRUE.equals(r.assessmentRequired) || Boolean.TRUE.equals(r.attestationRequired);
+        boolean questionnairesNeeded = Boolean.TRUE.equals(r.questionnaireRequired);
+        boolean attestationNeeded    = Boolean.TRUE.equals(r.attestationRequired);
 
-        // Collect summary lines to reduce noise
+        // Collect summary lines (single parent comment later)
         List<String> summaryLines = new ArrayList<>();
 
-        for (String domain : domains) {
-            String domainSlug = domain.toLowerCase(Locale.ROOT).replace(' ', '-'); // e.g., "service-transition"
-            String packId = domainToPackId(domain);
-            String packVersion = "v1";
+        // ---- 2a) Risks per domain (ONLY if domains exist) ----
+        Map<String, String> domainToRiskKey = new HashMap<>();
+        if (!domains.isEmpty()) {
+            for (String domain : domains) {
+                String domainSlug = domain.toLowerCase(Locale.ROOT).replace(' ', '-');
 
-            // ---- 2a) Create domain Risk (STANDARD) and link Blocks -> Parent ----
-            String riskIssueKey = null;
-            if (needsConstraint) {
                 List<String> riskLabels = new ArrayList<>();
                 riskLabels.addAll(splitCsv(riskLabelsCsv));
                 riskLabels.add(domainSlug);
@@ -163,23 +165,29 @@ public class JiraWebhookService {
                 desc.append("- This risk blocks ").append(parentIssueKey).append(".\n");
 
                 try {
-                    // Create Risk as STANDARD issue (by NAME)
-                    riskIssueKey = jira.createIssue(projectKey, riskIssueType, riskSummary, desc.toString(), riskLabels);
-                    // Link: Risk (outward) blocks Parent (inward)
-                    jira.linkIssuesBlocks(riskIssueKey, parentIssueKey);
+                    String riskIssueKey = jira.createIssue(projectKey, riskIssueType, riskSummary, desc.toString(), riskLabels);
+                    jira.linkIssuesBlocks(riskIssueKey, parentIssueKey); // Risk blocks Parent
+                    domainToRiskKey.put(domain, riskIssueKey);
                     summaryLines.add("[" + domain + "] Risk: " + riskIssueKey + " (blocks " + parentIssueKey + ")");
                 } catch (Exception e) {
                     log.warn("Failed to create/link risk for domain {} (parent {}): {}", domain, parentIssueKey, e.toString());
                     summaryLines.add("[" + domain + "] Risk: creation failed (" + e.getClass().getSimpleName() + ")");
                 }
             }
+        }
 
-            // ---- 2b) Create domain Questionnaire (STANDARD) + remote link + Relates links ----
-            if (Boolean.TRUE.equals(r.questionnaireRequired)) {
+        // ---- 2b) Questionnaires per domain (when requested AND domains exist) ----
+        if (questionnairesNeeded && !domains.isEmpty()) {
+            for (String domain : domains) {
                 try {
+                    String packId = domainToPackId(domain);
+                    String packVersion = "v1";
+
                     // form instance & public URL
                     FormInstance fi = forms.findOrCreate(parentIssueKey, packId, packVersion);
                     String formUrl = forms.publicUrl(fi);
+
+                    String domainSlug = domain.toLowerCase(Locale.ROOT).replace(' ', '-');
 
                     List<String> qLabels = new ArrayList<>();
                     qLabels.addAll(splitCsv(questionnaireLabelsCsv));
@@ -189,39 +197,72 @@ public class JiraWebhookService {
                     StringBuilder qDesc = new StringBuilder();
                     qDesc.append("You are required to complete the ").append(domain).append(" questionnaire.\n\n");
                     qDesc.append("Form: ").append(formUrl).append("\n");
-                    if (riskIssueKey != null) {
-                        qDesc.append("Related risk: ").append(riskIssueKey).append("\n");
+                    String riskKey = domainToRiskKey.get(domain);
+                    if (riskKey != null) {
+                        qDesc.append("Related risk: ").append(riskKey).append("\n");
                     }
                     qDesc.append("\nAcceptance criteria\n");
                     qDesc.append("- Questionnaire submitted\n");
                     qDesc.append("- Questions answered accurately and completely\n");
 
-                    // Create Questionnaire as STANDARD issue (EXACT same call shape as Risk)
                     String questionnaireKey = jira.createIssue(
                             projectKey,
-                            questionnaireIssueType, // treat as standard type name (e.g., "Story"/"Task")
+                            questionnaireIssueType, // standard type (Story/Task/etc)
                             qSummary,
                             qDesc.toString(),
                             qLabels
                     );
 
-                    // Add a remote link to the form
                     jira.addRemoteLink(questionnaireKey, "Complete " + domain + " questionnaire", formUrl);
 
-                    // Relationships (different from Risk):
-                    // - Questionnaire ↔ Relates ↔ Risk (if Risk exists)
-                    if (riskIssueKey != null) {
-                        jira.linkIssuesRelates(questionnaireKey, riskIssueKey);
-                    }
-                    // - Questionnaire ↔ Relates ↔ Parent
-                    jira.linkIssuesRelates(questionnaireKey, parentIssueKey);
+                    if (riskKey != null) jira.linkIssuesRelates(questionnaireKey, riskKey); // Questionnaire ↔ Risk
+                    jira.linkIssuesRelates(questionnaireKey, parentIssueKey);               // Questionnaire ↔ Parent
 
                     summaryLines.add("[" + domain + "] Questionnaire: " + questionnaireKey +
-                            " (relates to " + (riskIssueKey != null ? riskIssueKey + ", " : "") + parentIssueKey + ")");
+                            " (relates to " + (riskKey != null ? riskKey + ", " : "") + parentIssueKey + ")");
                 } catch (Exception e) {
                     log.warn("Failed to create/link questionnaire for domain {} (parent {}): {}", domain, parentIssueKey, e.toString());
                     summaryLines.add("[" + domain + "] Questionnaire: creation failed (" + e.getClass().getSimpleName() + ")");
                 }
+            }
+        }
+
+        // ---- 2c) Global Attestation (when NO domains but attestation is required) ----
+        if (domains.isEmpty() && attestationNeeded) {
+            try {
+                String packId = "attestation";
+                String packVersion = "v1";
+
+                FormInstance fi = forms.findOrCreate(parentIssueKey, packId, packVersion);
+                String formUrl = forms.publicUrl(fi);
+
+                List<String> aLabels = new ArrayList<>(splitCsv(attestationLabelsCsv));
+
+                String aSummary = "[Attestation] " + parentIssueKey + " · " + compact(r.reviewMode);
+                StringBuilder aDesc = new StringBuilder();
+                aDesc.append("You are required to complete an attestation for this capability.\n\n");
+                aDesc.append("Form: ").append(formUrl).append("\n");
+                aDesc.append("\nAcceptance criteria\n");
+                aDesc.append("- Attestation submitted\n");
+                aDesc.append("- Answers are accurate and complete\n");
+
+                String attestationKey = jira.createIssue(
+                        projectKey,
+                        attestationIssueType, // standard type (Story/Task/etc)
+                        aSummary,
+                        aDesc.toString(),
+                        aLabels
+                );
+
+                jira.addRemoteLink(attestationKey, "Complete attestation", formUrl);
+
+                // Attestation should block the parent (mirrors Risk)
+                jira.linkIssuesBlocks(attestationKey, parentIssueKey);
+
+                summaryLines.add("Attestation: " + attestationKey + " (blocks " + parentIssueKey + ")");
+            } catch (Exception e) {
+                log.warn("Failed to create/link attestation for parent {}: {}", parentIssueKey, e.toString());
+                summaryLines.add("Attestation: creation failed (" + e.getClass().getSimpleName() + ")");
             }
         }
 

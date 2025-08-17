@@ -130,7 +130,7 @@ public class JiraClient {
 
     /**
      * Create a Sub-task under a parent issue and return its key.
-     * @param projectKey    Project key (e.g., "STRAT")
+     * @param projectKey     Project key (e.g., "STRAT")
      * @param parentIssueKey Parent issue key (e.g., "STRAT-221")
      * @param issueType      Sub-task issue type name (usually "Sub-task")
      * @param summary        Summary text
@@ -174,11 +174,11 @@ public class JiraClient {
 
     /**
      * Link two issues with a given link type name.
-     * Direction here: inwardIssue <-[type]- outwardIssue
+     * Direction: inwardIssue <-[type]- outwardIssue
      */
     public void linkIssues(String inwardIssueKey, String outwardIssueKey, String linkTypeName) {
         String url = baseUrl + "/rest/api/2/issueLink";
-        log.debug("Jira POST {}", url);
+        log.debug("Jira POST {} (type={}, inward={}, outward={})", url, linkTypeName, inwardIssueKey, outwardIssueKey);
 
         Map<String, Object> body = new HashMap<>();
         body.put("type", Map.of("name", linkTypeName));
@@ -187,17 +187,22 @@ public class JiraClient {
 
         HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authJson());
         http.postForEntity(url, req, String.class);
-        log.info("Linked issues {} -[{}]-> {}", inwardIssueKey, linkTypeName, outwardIssueKey);
+
+        if ("Blocks".equalsIgnoreCase(linkTypeName)) {
+            // Outward blocks inward
+            log.info("Linked: {} (blocks) {}", outwardIssueKey, inwardIssueKey);
+        } else {
+            log.info("Linked: {} <{}> {}", inwardIssueKey, linkTypeName, outwardIssueKey);
+        }
     }
 
     /**
-     * Convenience for constraints:
-     * Risk Story (blocker) --Blocks--> Parent (blocked)
-     * i.e., parent shows "is blocked by <risk>".
+     * Create a "Blocks" link where `blockerIssueKey` **blocks** `blockedIssueKey`.
+     * Jira semantics: outward = blocker (shows "blocks"), inward = blocked (shows "is blocked by").
      */
-    public void linkIssuesBlocks(String riskIssueKey, String parentIssueKey) {
-        // For "Blocks": outward side = "blocks", inward side = "is blocked by"
-        linkIssues(parentIssueKey, riskIssueKey, "Blocks");
+    public void linkIssuesBlocks(String blockerIssueKey, String blockedIssueKey) {
+
+        linkIssues(blockerIssueKey, blockedIssueKey, "Blocks");
     }
 
     /** Convenience: create a symmetric "Relates" link between A and B. */
